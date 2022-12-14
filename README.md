@@ -5,6 +5,7 @@ A small tool to view images quickly.
 
 程序灵感来自[@hamoyy](https://meta.appinn.net/t/topic/38641)，全部使用[aardio](https://www.aardio.com)编写。
 
+作者邮箱：xenon2333@qq.com
 ## 使用场景
 - 需要重复快速查看指定图片，如查询尺码表。
 - 需要将多张截图“钉”在屏幕上，且要求快速来回切换。
