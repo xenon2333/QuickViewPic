@@ -1,0 +1,321 @@
+import win.ui;
+/*DSG{{*/
+var winset = win.form(text="设置";right=439;bottom=484;border="dialog frame";max=false;mode="popup")
+winset.add(
+button_add={cls="button";text="添加项目";left=10;top=405;right=100;bottom=435;z=14};
+button_changefolder={cls="button";text="修改目录";left=350;top=150;right=430;bottom=180;z=12};
+button_clear={cls="button";text="清空列表";left=10;top=445;right=100;bottom=475;z=17};
+button_delete={cls="button";text="删除选中项";left=340;top=405;right=430;bottom=435;z=16};
+button_down={cls="button";text="下移选中项";left=120;top=445;right=210;bottom=475;z=22};
+button_edit={cls="button";text="编辑选中项";left=230;top=405;right=320;bottom=435;z=15};
+button_saveall={cls="button";text="保存所有设置并关闭";left=230;top=445;right=430;bottom=475;z=18};
+button_up={cls="button";text="上移选中项";left=120;top=405;right=210;bottom=435;z=21};
+edit_appfolder={cls="edit";left=94;top=117;right=344;bottom=142;autovscroll=false;edge=1;font=LOGFONT(h=-14);hidesel=1;readonly=1;z=10};
+edit_customfolder={cls="edit";left=94;top=152;right=344;bottom=177;autovscroll=false;edge=1;font=LOGFONT(h=-14);hidesel=1;readonly=1;z=11};
+groupbox_dock={cls="groupbox";text="窗口吸附方向";left=280;top=10;right=430;bottom=105;edge=1;font=LOGFONT(h=-14);z=6};
+groupbox_mode={cls="groupbox";text="模式";left=10;top=10;right=270;bottom=105;edge=1;font=LOGFONT(h=-14);z=1};
+listview={cls="listview";left=10;top=217;right=430;bottom=397;edge=1;fullRow=1;msel=false;z=13};
+radiobutton_clip={cls="radiobutton";text="剪贴板";left=25;top=70;right=125;bottom=90;font=LOGFONT(h=-14);z=5};
+radiobutton_customfolder={cls="radiobutton";text="自定义目录";left=130;top=40;right=260;bottom=60;font=LOGFONT(h=-14);z=3};
+radiobutton_customlist={cls="radiobutton";text="自定义图片列表";left=130;top=70;right=260;bottom=90;font=LOGFONT(h=-14);z=4};
+radiobutton_default={cls="radiobutton";text="默认";left=25;top=40;right=125;bottom=60;font=LOGFONT(h=-14);z=2};
+radiobutton_left={cls="radiobutton";text="屏幕左侧";left=290;top=40;right=420;bottom=60;font=LOGFONT(h=-14);z=7};
+radiobutton_right={cls="radiobutton";text="屏幕右侧";left=290;top=70;right=420;bottom=90;font=LOGFONT(h=-14);z=8};
+static={cls="static";text="默认目录：";left=10;top=120;right=90;bottom=140;align="center";font=LOGFONT(h=-14);nWrap=1;transparent=1;z=9};
+static2={cls="static";text="自定义目录：";left=10;top=155;right=90;bottom=175;align="center";font=LOGFONT(h=-14);nWrap=1;transparent=1;z=19};
+static3={cls="static";text="自定义列表：";left=10;top=190;right=90;bottom=210;align="center";font=LOGFONT(h=-14);nWrap=1;transparent=1;z=20}
+)
+/*}}*/
+
+if( !winset.parent ){
+	return;// 阻止该窗口单独启动
+}
+
+/*读取自定义列表{{*/
+var list = {};
+var items = ..parameter.Items;
+var num = table.count( items );
+for(i=1;num;1){
+	list[i] = {};
+	list[i][1] = i;
+	var j = string.lastIndexOf(items[i],"\");
+	list[i][2] = string.right( items[i], -j-1);
+	list[i][3] = items[i];
+}
+/*}}*/
+
+/*自定义目录{{*/
+winset.button_changefolder.oncommand = function(id,event){
+	import fsys.dlg.dir;
+	var path;
+	if( winset.edit_customfolder.text != "" )
+		path = fsys.dlg.dir( winset.edit_customfolder.text,,'选择目录','使用此目录');
+	else
+		path = fsys.dlg.dir( ,,'选择目录','使用此目录');
+	if( path )
+		winset.edit_customfolder.text = path;
+}
+/*}}*/
+
+/*添加项目{{*/
+winset.button_add.oncommand = function(id,event){
+	if( winset.radiobutton_clip.checked ){
+		import win.clip;
+		var bith = win.clip.readBitmap();
+		if( bith == null ){
+			winset.msgboxErr("未能从剪贴板中读取到位图！","错误");
+			return;
+		}
+		var n = table.count( ..clip ) +1;
+		..clip[n] = {};
+		..clip[n][1] = n;
+		..clip[n][2] = tostring( time.tick() );
+		..clip[n][3] = bith;
+		winset.listview.items = ..clip;
+		return;
+	}
+	import fsys.dlg;
+	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","选择图片");
+	if( path ){
+		var n = table.count( list ) +1;
+		list[n] = {};
+		list[n][1] = n;
+		var j = string.lastIndexOf( path, "\" );
+		list[n][2] = string.right( path , -j-1 );
+		list[n][3] = path;
+		winset.listview.items = list;
+	}
+}
+/*}}*/
+
+/*编辑项目及缓存预览{{*/
+winset.button_edit.oncommand = function(id,event){
+	var n = winset.listview.selIndex;
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( winset.radiobutton_clip.checked ){
+		publish("ShowPic", ..clip[n][3]);
+		win.delay(1500);
+		publish("Hide",);
+		return;
+	}
+	import fsys.dlg;
+	var j = string.lastIndexOf( list[n][3], "\" );
+	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","替换图片", string.left( list[n][3], j ));
+	if( path ){
+		list[n][1] = n;
+		var j = string.lastIndexOf( path, "\" );
+		list[n][2] = string.right( path , -j-1 );
+		list[n][3] = path;
+		winset.listview.items = list;
+	}
+}
+/*}}*/
+
+/*删除项目{{*/
+winset.button_delete.oncommand = function(id,event){
+	var n = winset.listview.selIndex;
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( winset.radiobutton_clip.checked ){
+		::DeleteObject(..clip[n][3]);
+		var j = table.count(..clip);
+		for(i=n;j-1;1){
+			..clip[i] = ..clip[i+1];
+			..clip[i][1] = i;
+		}
+		..clip[j] = null;
+		winset.listview.items = ..clip;
+	}
+	else {
+		var j = table.count(list);
+		for(i=n;j-1;1){
+			list[i] = list[i+1];
+			list[i][1] = i;
+		}
+		list[j] = null;
+		winset.listview.items = list;
+	}
+}
+/*}}*/
+
+/*移动项目{{*/
+winset.button_up.oncommand = function(id,event){
+	var n = winset.listview.selIndex;
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( n == 1 ){
+		winset.msgbox("该项目已经在最顶端了！","提示");
+		return;
+	}
+	if( winset.radiobutton_clip.checked ){
+		..clip[n][1] ,..clip[n-1][1] = n-1, n;
+		..clip[0] = ..clip[n-1];
+		..clip[n-1] = ..clip[n];
+		..clip[n] = ..clip[0];
+		..clip[0] = null;
+		winset.listview.items = ..clip;
+		winset.listview.selIndex = n-1;
+	}
+	else {
+		list[n][1] ,list[n-1][1] = n-1, n;
+		list[0] = list[n-1];
+		list[n-1] = list[n];
+		list[n] = list[0];
+		list[0] = null;
+		winset.listview.items = list;
+		winset.listview.selIndex = n-1;
+	}
+}
+winset.button_down.oncommand = function(id,event){
+	var n = winset.listview.selIndex;
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( n == table.count( winset.listview.items ) ){
+		winset.msgbox("该项目已经在最底端了！","提示");
+		return;
+	}
+	if( winset.radiobutton_clip.checked ){
+		..clip[n][1] ,..clip[n+1][1] = n+1, n;
+		..clip[0] = ..clip[n+1];
+		..clip[n+1] = ..clip[n];
+		..clip[n] = ..clip[0];
+		..clip[0] = null;
+		winset.listview.items = ..clip;
+		winset.listview.selIndex = n+1;
+	}
+	else {
+		list[n][1] ,list[n+1][1] = n+1, n;
+		list[0] = list[n+1];
+		list[n+1] = list[n];
+		list[n] = list[0];
+		list[0] = null;
+		winset.listview.items = list;
+		winset.listview.selIndex = n+1;
+	}
+}
+/*}}*/
+
+/*清空列表{{*/
+winset.button_clear.oncommand = function(id,event){
+	if( winset.radiobutton_clip.checked ){
+		if( table.count( ..clip ) == 0 )
+			return;
+		if( winset.msgboxTest("确定要清空列表吗？此操作不可撤销。","询问") ){
+			for(i=1;table.count( ..clip );1)
+				::DeleteObject( ..clip[i][3] );
+			..clip = {};
+			winset.listview.items = ..clip;
+		}
+		return;
+	}
+	if( table.count( list ) == 0 )
+		return;
+	if( winset.msgboxTest("确定要清空列表吗？此操作不可撤销。","询问") ){
+		list = {};
+		winset.listview.items = list;
+	}
+}
+/*}}*/
+
+/*保存设置{{*/
+winset.button_saveall.oncommand = function(id,event){
+	if( winset.edit_customfolder.text !="" )
+		..parameter.Folder = winset.edit_customfolder.text;
+	..parameter.Items = {};
+	for(i=1;table.count(list);1)
+		..parameter.Items[list[i][1]] = list[i][3];
+	if( winset.radiobutton_default.checked )
+		..parameter.Mode = 'Default';
+	else if( winset.radiobutton_customfolder.checked )
+		..parameter.Mode = 'CustomFolder';
+	else if( winset.radiobutton_customlist.checked )
+		..parameter.Mode = 'CustomList';
+	else if( winset.radiobutton_clip.checked )
+		..parameter.Mode = 'Clip';
+	else
+		..parameter.Mode = 'Default';
+	if( winset.radiobutton_right.checked )
+		..parameter.Dockside = 'Right';
+	else
+		..parameter.Dockside = 'Left';
+	winset.endModal(true);
+}
+/*}}*/
+
+/*更改模式{{*/
+winset.radiobutton_default.oncommand = function(id,event){
+	if( winset.static3.text == "剪贴板缓存：" )
+		winset.radiobutton_customlist.oncommand();
+}
+
+winset.radiobutton_customfolder.oncommand = function(id,event){
+	if( winset.static3.text == "剪贴板缓存：" )
+		winset.radiobutton_customlist.oncommand();
+}
+
+winset.radiobutton_customlist.oncommand = function(id,event){
+	winset.static3.text = "自定义列表：";
+	winset.button_add.text = "添加项目";
+	winset.button_edit.text = "编辑选中项";
+	winset.listview.clear(true);
+	winset.listview.insertColumn("序号",40);
+	winset.listview.insertColumn("显示名称",100);
+	winset.listview.insertColumn("图片路径",-1);
+	winset.listview.items = list;
+}
+
+winset.radiobutton_clip.oncommand = function(id,event){
+	winset.static3.text = "剪贴板缓存：";
+	winset.button_add.text = "读取剪贴板";
+	winset.button_edit.text = "预览选中项";
+	winset.listview.clear(true);
+	winset.listview.insertColumn("序号",40);
+	winset.listview.insertColumn("时间戳",120);
+	winset.listview.insertColumn("位图句柄",-1);
+	winset.listview.items = ..clip;
+}
+/*}}*/
+
+/*窗口初始化{{*/
+select( ..parameter.Mode ) {
+	case 'Default' {
+		winset.radiobutton_default.checked = 1;
+		winset.radiobutton_customlist.oncommand();
+	}
+	case 'CustomFolder' {
+		winset.radiobutton_customfolder.checked = 1;
+		winset.radiobutton_customlist.oncommand();
+	}
+	case 'CustomList' {
+		winset.radiobutton_customlist.checked = 1;
+		winset.radiobutton_customlist.oncommand();
+	}
+	case 'Clip' {
+		winset.radiobutton_clip.checked = 1;
+		winset.radiobutton_clip.oncommand();
+	}
+	else {
+		winset.radiobutton_default.checked = 1;
+		winset.radiobutton_customlist.oncommand();
+	}
+}
+if( ..parameter.Dockside == 'Right' )
+	winset.radiobutton_right.checked = 1;
+else
+	winset.radiobutton_left.checked = 1;
+winset.edit_appfolder.text = io._exedir;
+winset.edit_customfolder.text = ..parameter.Folder;
+/*}}*/
+
+winset.show();
+win.loopMessage();
+return winset;

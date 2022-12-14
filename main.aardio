@@ -1,0 +1,43 @@
+//数据初始化
+_version = 0.1;
+parameter = {
+	Mode = 'Default';
+	Items = {};
+	Dockside = 'Left';
+	Folder = "";
+};
+clip = {};
+
+//读取config.json
+import web.json;
+if( io.exist( "\config.json" ) ){
+	var config = string.load( "\config.json" );
+	try{ config = web.json.parse( config );}
+	catch(e){ win.msgboxErr("解析config.json失败！将以默认设置启动。","错误");}
+	select( config[['Mode']] ){
+		case 'Default','CustomFolder','CustomList','Clip' 
+			parameter.Mode = config[['Mode']];
+	}
+	select( config[['Dockside']] ){
+		case 'Left','Right'
+			parameter.Dockside = config[['Dockside']];
+	}
+	var item = config[['Items']];
+	if( table.isArray(item) )
+		parameter.Items = item;
+	if( io.exist(config[['Folder']]) )
+		parameter.Folder = config[['Folder']];
+}
+
+//窗口显示初始化
+import win;
+import win.ui;
+win.ui.disableDpiScaling = true;//禁用DPI自动缩放，避免显示异常
+
+//载入窗口
+win.loadForm( "\dlg\list.aardio" );
+win.loopMessage();
+
+//退出时保存设置
+var config = web.json.stringify( parameter, true );
+string.save( "\config.json", config );
