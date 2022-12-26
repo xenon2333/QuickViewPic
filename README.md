@@ -9,6 +9,7 @@ A small tool to view images quickly.
 ## 使用场景
 - 需要重复快速查看指定图片，如查询尺码表。
 - 需要将多张截图“钉”在屏幕上，且要求快速来回切换。
+- 快速浏览本地保存的表情包，并一键复制到剪贴板，用于聊天工具中。
 ## 基本介绍
 启动后程序会自动吸附在屏幕边缘，鼠标移动到窗口上则会唤出。
 
@@ -16,7 +17,9 @@ A small tool to view images quickly.
 
 最上方的按钮点击即可弹出菜单，可进行设置或退出操作。
 
-设置将在程序退出时自动保存至config.json（剪贴板数据除外）。
+右键点击列表项可一键复制当前选中项到剪贴板。
+
+设置将在程序退出时自动保存至%LocalAppData%目录下的QuickViewPic\config.cfg（剪贴板数据除外）。
 
 ## 模式
 ### 默认
@@ -25,11 +28,13 @@ A small tool to view images quickly.
 **支持的图片格式**：**jpg**、**png**、**bmp**。（下同）
 
 ### 自定义目录
-自动从用户选择的目录读取图片。
+由用户指定图片根目录，程序会自动扫描含有图片的子目录并供用户选择。程序会从用户选择的目录读取图片。
 ### 自定义图片列表
 由用户自行指定图片的路径及显示顺序。
 ### 剪贴板
-程序支持从剪贴板中导入位图并显示。
+从剪贴板中导入位图并显示。
+
+支持剪贴板监视及自动保存功能。
 
 获取位图的方式包括但不限于：
 - QQ截图工具
@@ -46,22 +51,26 @@ A small tool to view images quickly.
 
 ![screenshot](./Screenshots/Screenshot_1.png)
 
-- 设置界面：
-
 ![screenshot](./Screenshots/Screenshot_2.png)
 
-## 演示
-- 看图演示：
+- 设置界面：
 
-![screenshot](./Screenshots/Presentation_1.gif)
+![screenshot](./Screenshots/Screenshot_3.png)
 
-- 呼出菜单及退出演示：
+![screenshot](./Screenshots/Screenshot_4.png)
 
-![screenshot](./Screenshots/Presentation_2.gif)
+![screenshot](./Screenshots/Screenshot_5.png)
 
-- 剪贴板看图演示：
+![screenshot](./Screenshots/Screenshot_6.png)
 
-![screenshot](./Screenshots/Presentation_3.gif)
+- 隐藏时的小提示
+
+![screenshot](./Screenshots/Screenshot_7.png)
+
+## 详细介绍
+[动图演示](https://flowus.cn/ce8c4370-5d95-4c10-8bad-b24465376c31)
+
+[帮助文档](https://flowus.cn/8326c462-726c-4fe1-a829-fcf710e1f191)
 
 ## 其它要说的
 虽然我跟[@hamoyy](https://meta.appinn.net/t/topic/38641)要了他的源码，不过他之前是用易语言写的，而我上一次用易语言还是几年之前的事情了，因此我没能打开看源码。这个程序是根据我的观察，基于原有的功能先仿制了一个，再根据我个人需要添加了一些功能。
