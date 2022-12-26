@@ -1,0 +1,92 @@
+import config;
+import win.ui;
+/*DSG{{*/
+var winset = win.form(text="全局设置";right=379;bottom=199;border="dialog frame";max=false;min=false)
+winset.add(
+button_cancel={cls="button";text="取消";left=290;top=155;right=370;bottom=190;font=LOGFONT(h=-14);z=18};
+button_ok={cls="button";text="确认";left=290;top=110;right=370;bottom=145;font=LOGFONT(h=-14);z=17};
+groupbox={cls="groupbox";text="窗口吸附方向";left=10;top=5;right=130;bottom=95;edge=1;z=1};
+groupbox2={cls="groupbox";text="工作模式";left=135;top=5;right=370;bottom=95;edge=1;z=4};
+groupbox3={cls="groupbox";text="主题颜色";left=10;top=100;right=130;bottom=190;edge=1;z=9};
+groupbox4={cls="groupbox";text="每页展示项目数";left=135;top=100;right=280;bottom=190;edge=1;z=12};
+radiobutton_100={cls="radiobutton";text="100";left=215;top=155;right=265;bottom=175;font=LOGFONT(h=-14);z=16};
+radiobutton_20={cls="radiobutton";text="20";left=150;top=125;right=200;bottom=145;font=LOGFONT(h=-14);z=13};
+radiobutton_25={cls="radiobutton";text="25";left=215;top=125;right=265;bottom=145;font=LOGFONT(h=-14);z=14};
+radiobutton_50={cls="radiobutton";text="50";left=150;top=155;right=200;bottom=175;font=LOGFONT(h=-14);z=15};
+radiobutton_clip={cls="radiobutton";text="剪贴板";left=150;top=60;right=230;bottom=80;font=LOGFONT(h=-14);z=8};
+radiobutton_customdir={cls="radiobutton";text="自定义目录";left=235;top=30;right=365;bottom=50;font=LOGFONT(h=-14);z=6};
+radiobutton_customlist={cls="radiobutton";text="自定义图片列表";left=235;top=60;right=365;bottom=80;font=LOGFONT(h=-14);z=7};
+radiobutton_dark={cls="radiobutton";text="深色";left=25;top=155;right=125;bottom=175;font=LOGFONT(h=-14);z=11};
+radiobutton_default={cls="radiobutton";text="默认";left=150;top=30;right=230;bottom=50;font=LOGFONT(h=-14);z=5};
+radiobutton_left={cls="radiobutton";text="屏幕左侧";left=25;top=30;right=125;bottom=50;font=LOGFONT(h=-14);z=2};
+radiobutton_light={cls="radiobutton";text="浅色";left=25;top=125;right=125;bottom=145;font=LOGFONT(h=-14);z=10};
+radiobutton_right={cls="radiobutton";text="屏幕右侧";left=25;top=60;right=125;bottom=80;font=LOGFONT(h=-14);z=3}
+)
+/*}}*/
+
+winset.button_ok.oncommand = function(id,event){
+	if( winset.radiobutton_right.checked )
+		config.Dockside = 'Right';
+	else
+		config.Dockside = 'Left';
+	if( winset.radiobutton_customdir.checked )
+		config.Mode = 'CustomDir';
+	else if( winset.radiobutton_customlist.checked )
+		config.Mode = 'CustomList';
+	else if( winset.radiobutton_clip.checked )
+		config.Mode = 'Clip';
+	else
+		config.Mode = 'Default';
+	if( winset.radiobutton_light.checked )
+		config.Theme = 'Light';
+	else
+		config.Theme = 'Dark';
+	if( winset.radiobutton_25.checked )
+		config.Perpage = 25;
+	else if( winset.radiobutton_50.checked )
+		config.Perpage = 50;
+	else if( winset.radiobutton_100.checked )
+		config.Perpage = 100;
+	else
+		config.Perpage = 20;
+	winset.endModal(true);
+}
+winset.button_cancel.oncommand = function(id,event){
+	winset.endModal();
+}
+
+select( config.Dockside ){
+	case 'Left'
+		winset.radiobutton_left.checked = 1;
+	case 'Right'
+		winset.radiobutton_right.checked = 1;
+}
+select( config.Mode ){
+	case 'Default'
+		winset.radiobutton_default.checked = 1;
+	case 'CustomDir'
+		winset.radiobutton_customdir.checked = 1;
+	case 'CustomList'
+		winset.radiobutton_customlist.checked = 1;
+	case 'Clip'
+		winset.radiobutton_clip.checked = 1;
+}
+select( config.Theme ){
+	case 'Light'
+		winset.radiobutton_light.checked = 1;
+	case 'Dark'
+		winset.radiobutton_dark.checked = 1;
+}
+select( config.Perpage ){
+	case 20
+		winset.radiobutton_20.checked = 1;
+	case 25
+		winset.radiobutton_25.checked = 1;
+	case 50
+		winset.radiobutton_50.checked = 1;
+	case 100
+		winset.radiobutton_100.checked = 1;
+}
+winset.show();
+win.loopMessage();
+return winset;

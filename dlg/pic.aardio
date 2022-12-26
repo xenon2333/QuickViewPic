@@ -1,3 +1,4 @@
+import config;
 import win.ui;
 /*DSG{{*/
 var winpic = win.form(text="Pic";right=19;bottom=19;border="none";exmode="toolwindow";max=false;min=false;mode="popup";title=false)
@@ -34,7 +35,7 @@ adapt = function( w, h ){
 		winpic.picturebox.height = h;
 		dx, dy = winpic.picturebox.width, scrh/2-math.floor(h/2);
 	}
-	select(..parameter.Dockside) {
+	select( config.Dockside ) {
 		case 'Left' winpic.setPos( 120, dy );
 		case 'Right' winpic.setPos( scrw - 120 - dx, dy );
 		else winpic.setPos( 120, dy );

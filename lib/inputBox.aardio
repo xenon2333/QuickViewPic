@@ -1,0 +1,44 @@
+﻿//inputBox 输入对话框
+import win.ui;
+import win.ui.ctrl.edit;
+import win.ui.ctrl.static;
+
+class inputBox{
+	ctor( parent, password = false, num = false ){
+		this = ..win._form(text="Enter键确认 Esc键取消";right=319;bottom=79;border="dialog frame";exmode="none";max=false;min=false;mode="popup";parent=parent;sysmenu=false);
+		this.add( 
+			info={cls="static";text="请输入";left=10;top=10;right=310;bottom=30;font=LOGFONT(h=-14);notify=1;transparent=1;z=1};
+			input={cls="edit";left=10;top=40;right=310;bottom=70;edge=1;font=LOGFONT(h=-16);password=password;num=num;z=2}
+		)
+		this.onOk = function(){
+		    this.endModal( this.input.text );
+		};
+		this.onCancel = function(){
+		    this.endModal();
+		}
+	}
+}
+
+/**intellisense()
+inputBox = 输入对话框
+inputBox( = 创建一个输入对话框
+inputBox(.(父窗口,密码输入模式,仅数字模式） =  创建一个输入对话框\n参数 @1 为父窗口句柄\n参数 @2 为true则设置输入框为密码输入模式\n参数 @2 为true则设置输入框为仅数字模式
+inputBox() = !inputBoxMember.
+end intellisense**/
+
+/**intellisense(!inputBoxMember)
+doModal() = 弹出输入对话框\n该函数返回用户输入的值\n取消则返回null空值
+onInitDialog = @.onInitDialog = function(hwnd,message,wParam,lParam){\n	??.input.setFocus();__/*输入框初始化完成触发该函数*/\n}
+center() = 居中显示
+info = 静态文本控件
+input = 编辑框控件
+info->text = 要显示的提示文本
+input->text = 编辑框的初始文本
+input->setCueBannerText( = 设置编辑框为空时的提示文本
+text = 输入对话框标题
+setPos( = 调整窗口位置
+setPos(.(x,y,宽,高,插入位置,参数) = 调整窗口位置或排序\n所有参数可选 
+getPos() = 返回相对坐标,宽,高 
+topmost() = 窗体始终最前
+topmost(false) = 取消窗体始终最前
+end intellisense**/

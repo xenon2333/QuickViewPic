@@ -1,0 +1,119 @@
+﻿//config 配置
+import fsys;
+import fsys.path;
+import fsys.table;
+
+config = fsys.table(io.appData("/QuickViewPic/config.cfg"));
+
+//全局设置
+select( config.Mode ){
+	case 'Default','CustomDir','CustomList','Clip' {}
+	else
+		config.Mode = 'Default';
+}
+select( config.Dockside ){
+	case 'Left','Right' {}
+	else
+		config.Dockside = 'Left';
+}
+select( config.Perpage ) {
+	case 20,25,50,100 {}
+	else
+		config.Perpage = 20;
+}
+select( config.Theme ){
+	case 'Light','Dark'{}
+	else
+		config.Theme = 'Dark';
+}
+
+//自定义目录设置
+if( !table.count(config.CustomDir) ){
+	config.CustomDir = {
+		current = io._exedir;
+		root = io._exedir;
+		blacklist = {};
+	};
+}
+if( !fsys.isDir(config.CustomDir.root) ){
+	config.CustomDir.root = io._exedir;
+	config.CustomDir.current = io._exedir;
+}
+if( !fsys.isDir(config.CustomDir.current) )
+	config.CustomDir.current = config.CustomDir.root;
+if( !table.count(config.CustomDir.blacklist) )
+	config.CustomDir.blacklist = {};
+var n = table.count(config.CustomDir.blacklist);
+var tab = config.CustomDir.blacklist;
+for(i=1;n;1){
+	if( !fsys.isDir(config.CustomDir.blacklist[i]) )
+		table.remove(tab,i);
+}
+config.CustomDir.blacklist = tab;
+
+//自定义列表设置
+if( !table.count(config.CustomList) ){
+	config.CustomList = {};
+}
+tab = config.CustomList;
+n = table.count(config.CustomList);
+for(i=1;n;1){
+	if( !io.exist(config.CustomList[i]) )
+		table.remove(tab,i);
+}
+config.CustomList = tab;
+
+//剪贴板设置
+if( table.count(config.Clip) ){
+	select( config.Clip.monitor ) {
+		case 'ON','OFF' {}
+		else
+			config.Clip.monitor = 'OFF';
+	}
+	select( config.Clip.autosave ) {
+		case 'ON','OFF' {}
+		else
+			config.Clip.autosave = 'OFF';
+	}
+	config.Clip.savepath = fsys.path.removeBackslash( config.Clip.savepath );
+	try{ tostring( time(), config.Clip.filename );}
+	catch(){ config.Clip.filename = '%y%m%d_%H%M%S'; }
+	if( config.Clip.filename != fsys.path.validName(config.Clip.filename) )
+		config.Clip.filename = '%y%m%d_%H%M%S';
+	select( config.Clip.format ) {
+		case '.jpg','.png','.bmp' {}
+		else
+			config.Clip.format = '.png';
+	}
+}
+else
+	config.Clip = {
+		monitor = 'OFF';
+		autosave = 'OFF';
+		savepath = io.appData("\QuickViewPic\autosave");
+		filename = '%y%m%d_%H%M%S';
+		format = '.png';
+	};
+
+/**intellisense()
+config = 配置
+end intellisense**/
+
+/**intellisense(config)
+.Mode = 模式
+.Dockside = 窗口吸附方向
+.Perpage = 每页项目数量
+.Theme = 主题色
+.CustomDir = 自定义目录列表
+.CustomDir.current = 当前选择的路径
+.CustomDir.root = 自定义的根目录
+.CustomDir.child = 根目录下含图片的子目录
+.CustomDir.blacklist = 黑名单
+.CustomList = 自定义列表
+.Clip = 剪贴板设置
+.Clip.monitor = 自动监视剪贴板
+.Clip.autosave = 自动保存位图
+.Clip.savepath = 自动保存的路径
+.Clip.filename = 自动保存的文件名
+.Clip.format = 文件保存格式
+end intellisense**/

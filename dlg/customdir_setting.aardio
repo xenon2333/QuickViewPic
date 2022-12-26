@@ -1,0 +1,115 @@
+import config;
+import fsys;
+import fsys.dlg.dir;
+import win.ui;
+/*DSG{{*/
+var winset = win.form(text="设置：自定义目录";right=379;bottom=594;border="dialog frame";max=false;min=false)
+winset.add(
+button_addblacklist={cls="button";text="加入黑名单";left=140;top=285;right=240;bottom=315;font=LOGFONT(h=-14);z=7};
+button_changeroot={cls="button";text="修改根目录";left=275;top=33;right=365;bottom=63;font=LOGFONT(h=-14);z=3};
+button_choose={cls="button";text="使用选中目录";left=265;top=285;right=365;bottom=315;font=LOGFONT(h=-14);z=8};
+button_clear={cls="button";text="清空黑名单";left=265;top=545;right=365;bottom=575;font=LOGFONT(h=-14);z=12};
+button_remove={cls="button";text="移除选中项";left=15;top=545;right=115;bottom=575;font=LOGFONT(h=-14);z=11};
+button_scan={cls="button";text="扫描根目录";left=15;top=285;right=115;bottom=315;font=LOGFONT(h=-14);z=6};
+edit={cls="edit";left=15;top=35;right=265;bottom=60;autovscroll=false;edge=1;font=LOGFONT(h=-14);hidesel=1;readonly=1;z=2};
+edit2={cls="edit";left=105;top=333;right=365;bottom=358;autovscroll=false;edge=1;font=LOGFONT(h=-14);hidesel=1;readonly=1;z=13};
+groupbox={cls="groupbox";text="根目录";left=5;top=10;right=375;bottom=70;edge=1;z=1};
+groupbox2={cls="groupbox";text="包含图片的子目录";left=5;top=75;right=375;bottom=325;edge=1;z=4};
+groupbox3={cls="groupbox";text="黑名单（对根目录无效）";left=5;top=365;right=375;bottom=585;edge=1;z=9};
+listview_blacklist={cls="listview";left=15;top=390;right=365;bottom=540;edge=1;font=LOGFONT(h=-14);fullRow=1;hscroll=1;msel=false;vscroll=1;z=10};
+listview_child={cls="listview";left=15;top=100;right=365;bottom=280;edge=1;font=LOGFONT(h=-14);fullRow=1;hscroll=1;msel=false;vscroll=1;z=5};
+static={cls="static";text="当前加载目录：";left=5;top=335;right=105;bottom=355;font=LOGFONT(h=-14);transparent=1;z=14}
+)
+/*}}*/
+
+var child = {};
+
+winset.button_changeroot.oncommand = function(id,event){
+	var path;
+	if( winset.edit.text != "" )
+		path = fsys.dlg.dir( winset.edit.text,,'选择目录','使用此目录');
+	else
+		path = fsys.dlg.dir( ,,'选择目录','使用此目录');
+	if( path ){
+		winset.edit.text = path;
+		config.CustomDir.root = path;
+		config.CustomDir.current = config.CustomDir.root;
+		winset.edit2.text = config.CustomDir.current;
+		winset.button_scan.oncommand();
+	}
+}
+
+winset.button_scan.oncommand = function(id,event){
+	child = {};
+	var i = 1;
+	var lastdir = "";
+	fsys.enum( config.CustomDir.root, {"*.jpg";"*.png";"*.bmp"},
+		function(dirname,filename,fullpath,findData){
+			var pathinfo = io.splitpath(fullpath);
+			if( pathinfo.dir != lastdir ){
+				child[i] = { pathinfo.dir };
+				i++;
+				lastdir = pathinfo.dir;
+			}
+		},
+		function(dirpath,dirname){
+			if( table.find( config.CustomDir.blacklist, dirpath++"\" ) )
+				return false; 
+    		return true;  
+		} 
+	);
+	winset.listview_child.replaceItems(child);
+}
+
+winset.button_addblacklist.oncommand = function(id,event){
+	var m = winset.listview_child.getSelection();
+	if( !m ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	var n = table.count( config.CustomDir.blacklist )+1;
+	config.CustomDir.blacklist[n] = child[m][1];
+	winset.button_scan.oncommand();
+	winset.listview_blacklist.items = config.CustomDir.blacklist;
+}
+
+winset.button_choose.oncommand = function(id,event){
+	var n = winset.listview_child.getSelection();
+	if( n ){
+		config.CustomDir.current = child[n][1];
+	}
+	else {
+		config.CustomDir.current = config.CustomDir.root;
+		winset.msgbox("未进行选择，将默认使用根目录作为当前目录！","提示");
+	}
+	winset.endModal(true);
+}
+
+winset.button_remove.oncommand = function(id,event){
+	var n = winset.listview_blacklist.getSelection();
+	if( !n ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	table.remove( config.CustomDir.blacklist, n );
+	winset.button_scan.oncommand();
+	winset.listview_blacklist.items = config.CustomDir.blacklist;
+}
+
+winset.button_clear.oncommand = function(id,event){
+	if( winset.msgboxTest("真的要清空列表吗？该操作不可撤销。","询问") ){
+		config.CustomDir.blacklist = {};
+		winset.listview_blacklist.items = config.CustomDir.blacklist;
+		winset.button_scan.oncommand();
+	}
+}
+
+winset.edit.text = config.CustomDir.root;
+winset.edit2.text = config.CustomDir.current;
+winset.listview_child.insertColumn("路径",1000);
+winset.listview_blacklist.insertColumn("路径",1000);
+winset.button_scan.oncommand();
+winset.listview_blacklist.items = config.CustomDir.blacklist;
+winset.show();
+win.loopMessage();
+return winset;

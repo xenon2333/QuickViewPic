@@ -1,0 +1,144 @@
+import config;
+import fsys.dlg;
+import fsys.dlg.dir;
+import win.ui;
+/*DSG{{*/
+var winset = win.form(text="设置：自定义图片列表";right=439;bottom=304;border="dialog frame";max=false;min=false;mode="popup")
+winset.add(
+button_add={cls="button";text="添加项目";left=10;top=225;right=100;bottom=255;z=2};
+button_clear={cls="button";text="清空列表";left=10;top=265;right=100;bottom=295;z=5};
+button_delete={cls="button";text="删除选中项";left=340;top=225;right=430;bottom=255;z=4};
+button_down={cls="button";text="下移选中项";left=120;top=265;right=210;bottom=295;z=9};
+button_edit={cls="button";text="编辑选中项";left=230;top=225;right=320;bottom=255;z=3};
+button_saveall={cls="button";text="保存所有设置并关闭";left=230;top=265;right=430;bottom=295;z=6};
+button_up={cls="button";text="上移选中项";left=120;top=225;right=210;bottom=255;z=8};
+listview={cls="listview";left=10;top=35;right=430;bottom=215;edge=1;fullRow=1;msel=false;z=1};
+static={cls="static";text="自定义列表：";left=10;top=10;right=90;bottom=30;align="center";font=LOGFONT(h=-14);nWrap=1;transparent=1;z=7}
+)
+/*}}*/
+
+/*读取自定义列表{{*/
+var list = {};
+var items = config.CustomList;
+var num = table.count( items );
+for(i=1;num;1){
+	list[i] = {};
+	list[i][1] = i;
+	list[i][2] = io.splitpath(items[i]).file;
+	list[i][3] = items[i];
+}
+/*}}*/
+
+/*添加项目{{*/
+winset.button_add.oncommand = function(id,event){
+	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","选择图片");
+	if( path ){
+		var n = table.count( list ) +1;
+		list[n] = {};
+		list[n][1] = n;
+		list[n][2] = io.splitpath(path).file;
+		list[n][3] = path;
+		winset.listview.replaceItems(list);
+	}
+}
+/*}}*/
+
+/*编辑项目{{*/
+winset.button_edit.oncommand = function(id,event){
+	var n = winset.listview.getSelection();
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","替换图片", io.splitpath(list[n][3]).dir );
+	if( path ){
+		list[n][2] = io.splitpath(path).file;
+		list[n][3] = path;
+		winset.listview.replaceItems(list);
+	}
+}
+/*}}*/
+
+/*删除项目{{*/
+winset.button_delete.oncommand = function(id,event){
+	var n = winset.listview.getSelection();
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	var j = table.count(list);
+	for(i=n;j-1;1){
+		list[i] = list[i+1];
+		list[i][1] = i;
+	}
+	list[j] = null;
+	winset.listview.replaceItems(list);
+}
+/*}}*/
+
+/*移动项目{{*/
+winset.button_up.oncommand = function(id,event){
+	var n = winset.listview.getSelection();
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( n == 1 ){
+		winset.msgbox("该项目已经在最顶端了！","提示");
+		return;
+	}
+	list[n][1] ,list[n-1][1] = n-1, n;
+	list[0] = list[n-1];
+	list[n-1] = list[n];
+	list[n] = list[0];
+	list[0] = null;
+	winset.listview.replaceItems(list);
+	winset.listview.selIndex = n-1;
+}
+winset.button_down.oncommand = function(id,event){
+	var n = winset.listview.getSelection();
+	if( n == 0 ){
+		winset.msgbox("请选中项目！","提示");
+		return;
+	}
+	if( n == table.count( winset.listview.items ) ){
+		winset.msgbox("该项目已经在最底端了！","提示");
+		return;
+	}
+	list[n][1] ,list[n+1][1] = n+1, n;
+	list[0] = list[n+1];
+	list[n+1] = list[n];
+	list[n] = list[0];
+	list[0] = null;
+	winset.listview.replaceItems(list);
+	winset.listview.selIndex = n+1;
+}
+/*}}*/
+
+/*清空列表{{*/
+winset.button_clear.oncommand = function(id,event){
+	if( table.count( list ) == 0 )
+		return;
+	if( winset.msgboxTest("确定要清空列表吗？此操作不可撤销。","询问") ){
+		list = {};
+		winset.listview.replaceItems(list);
+	}
+}
+/*}}*/
+
+/*保存设置{{*/
+winset.button_saveall.oncommand = function(id,event){
+	config.CustomList = {};
+	for(i=1;table.count(list);1)
+		config.CustomList[list[i][1]] = list[i][3];
+	winset.endModal(true);
+}
+/*}}*/
+
+winset.listview.insertColumn("序号",40);
+winset.listview.insertColumn("显示名称",100);
+winset.listview.insertColumn("图片路径",-1);
+winset.listview.items = list;
+winset.show();
+win.loopMessage();
+return winset;

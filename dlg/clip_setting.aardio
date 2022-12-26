@@ -1,0 +1,247 @@
+import config;
+import fsys;
+import fsys.dlg.dir;
+import inputBox;
+import gdip.bitmap;
+import process;
+import win.clip;
+import win.ui;
+import win.ui.menu;
+/*DSG{{*/
+var winset = win.form(text="设置：剪贴板";right=899;bottom=559;border="dialog frame";max=false)
+winset.add(
+button_change={cls="button";text="修改目录";left=130;top=415;right=220;bottom=445;font=LOGFONT(h=-14);z=11};
+button_open={cls="button";text="浏览目录";left=20;top=415;right=110;bottom=445;font=LOGFONT(h=-14);z=10};
+button_reset={cls="button";text="恢复默认";left=240;top=415;right=330;bottom=445;font=LOGFONT(h=-14);z=12};
+button_save={cls="button";text="保存设置";left=240;top=510;right=330;bottom=540;font=LOGFONT(h=-14);z=17};
+checkbox_autosave={cls="checkbox";text="自动保存导入的位图";left=25;top=335;right=205;bottom=355;font=LOGFONT(h=-14);z=7};
+checkbox_monitor={cls="checkbox";text="监视剪贴板";left=25;top=305;right=205;bottom=325;font=LOGFONT(h=-14);z=6};
+combobox={cls="combobox";left=275;top=475;right=330;bottom=500;edge=1;font=LOGFONT(h=-14);items={".jpg";".png";".bmp"};mode="dropdownlist";z=15};
+edit_name={cls="edit";left=20;top=475;right=270;bottom=500;align="right";autovscroll=false;edge=1;font=LOGFONT(h=-14);z=14};
+edit_path={cls="edit";left=20;top=385;right=330;bottom=410;autovscroll=false;edge=1;font=LOGFONT(h=-14);readonly=1;z=9};
+groupbox={cls="groupbox";text="剪贴板位图管理（右键呼出菜单）";left=10;top=5;right=340;bottom=275;edge=1;z=1};
+groupbox2={cls="groupbox";text="剪贴板位图预览";left=355;top=5;right=890;bottom=550;edge=1;z=3};
+groupbox3={cls="groupbox";text="高级选项";left=10;top=280;right=340;bottom=550;edge=1;z=5};
+listview={cls="listview";left=15;top=25;right=335;bottom=265;fullRow=1;msel=false;z=2};
+plus={cls="plus";left=365;top=25;right=880;bottom=540;foreRepeat="scale";z=4};
+static={cls="static";text="保存目录：";left=25;top=360;right=115;bottom=380;font=LOGFONT(h=-14);transparent=1;z=8};
+static2={cls="static";text="文件名：";left=25;top=450;right=115;bottom=470;font=LOGFONT(h=-14);transparent=1;z=13};
+static3={cls="static";text='%y 年 %m 月 %d 日\r\n%H 时 %M 分 %S 秒';left=25;top=505;right=300;bottom=545;font=LOGFONT(h=-14);transparent=1;z=16}
+)
+/*}}*/
+
+if( !winset.parent ){
+	return;
+}
+
+/*读取配置{{*/
+if( config.Clip.monitor == 'ON' )
+	winset.checkbox_monitor.checked = 1;
+if( config.Clip.autosave == 'ON' )
+	winset.checkbox_autosave.checked = 1;
+winset.edit_path.text = config.Clip.savepath;
+winset.edit_name.text = config.Clip.filename;
+winset.combobox.selText = config.Clip.format;
+/*}}*/
+
+//初始化
+winset.listview.insertColumn("序号",40);
+winset.listview.insertColumn("位图句柄",120);
+winset.listview.insertColumn("显示名称",-1);
+winset.listview.items = ..clip;
+
+/*列表框右键菜单{{*/
+var popmenu = win.ui.popmenu( winset );
+popmenu.addTable( {
+	{ "自剪贴板导入";  function(id){
+		var hbmp = win.clip.readBitmap();
+		if( hbmp == null ){
+			winset.msgboxErr("未能从剪贴板中读取到位图！","错误");
+			return;
+		}
+		var n = table.count( ..clip ) +1;
+		..clip[n] = {};
+		..clip[n][1] = n;
+		..clip[n][2] = hbmp;
+		..clip[n][3] = tostring( time.tick() );
+		winset.listview.replaceItems( ..clip );
+		publish("AutoSave",);
+	} };
+	{ "导出至剪贴板"; function(id){
+		var n = winset.listview.getSelection();
+		if( !n ) return;
+		if( config.Clip.monitor == 'ON' ){
+			config.Clip.monitor = 'OFF';//临时禁用监视
+			win.clip.writeBitmap( value[n][2], false );
+			config.Clip.monitor = 'ON';
+		}
+		else
+			win.clip.writeBitmap( value[n][2], false );
+		winset.msgbox("当前项目已复制到剪贴板。","信息",,1000);
+ 	} };
+	{ "保存至本地"; function(id){
+		var n = winset.listview.getSelection();
+ 		if( !n ) return;
+ 		if( !io.exist( config.Clip.savepath ) )
+ 			io.createDir( config.Clip.savepath );
+ 		var path = config.Clip.savepath ++ "\" ++ tostring( time(), config.Clip.filename ) ++ config.Clip.format;
+ 		var bmp = gdip.bitmap( ..clip[n][2] );
+ 		bmp.save( path );
+ 		bmp.dispose();
+		winset.msgbox("当前项目已保存至自动保存目录。","信息",,1000);
+ 	} };
+ 	{ /*分隔线*/ };
+	{ "重命名"; function(id){
+		var n = winset.listview.getSelection();
+		if( !n ) return;
+		var input = inputBox( winset );
+		input.info.text = '请输入新名称：';
+		input.input.text = ..clip[n][3];
+		input.onInitDialog = function(hwnd,message,wParam,lParam){
+			input.input.setFocus();
+		}
+ 		var name = input.doModal();
+ 		if( name && name !="" ){
+ 			..clip[n][3] = name;
+ 			winset.listview.replaceItems(..clip);
+ 		}
+ 	} };
+	{ "修改序号"; function(id){
+		var n = winset.listview.getSelection();
+		if( !n ) return;
+		var input = inputBox( winset,,true );
+		input.info.text = '将序号为<'++ n ++'>的项目上下移动至：';
+		input.input.setCueBannerText("新序号",true);
+		input.onInitDialog = function(hwnd,message,wParam,lParam){
+			input.input.setFocus();
+		}
+		var id = tonumber( input.doModal() );
+		if( !id || id == n || id > table.count(..clip) )
+			return;
+		..clip[0] = ..clip[n];
+		var j = (id-n)/math.abs(id-n);
+		for( i=0; id-n-j; j )
+			..clip[n+i] = ..clip[n+i+j];
+		..clip[id] = ..clip[0];
+		..clip[0] = null;
+		for(i=1;table.count(..clip);1)
+			..clip[i][1] = i;
+		winset.listview.replaceItems(..clip);
+ 	} };
+ 	{ "删除"; function(id){
+ 		var n = winset.listview.getSelection();
+ 		if( !n ) return;
+		if( winset.msgboxTest("真的要删除此项吗？该操作不可撤销。","询问") ){
+			::DeleteObject( ..clip[n][2] );
+			var j = table.count(..clip);
+			for(i=n;j-1;1){
+				..clip[i] = ..clip[i+1];
+				..clip[i][1] = i;
+			}
+			..clip[j] = null;
+			winset.listview.replaceItems(..clip);
+		}
+ 	} };
+ 	{ "清空列表"; function(id){
+ 		if( table.count( ..clip ) == 0 )
+			return;
+		if( winset.msgboxTest("真的要清空列表吗？该操作不可撤销。","询问") ){
+			for(i=1;table.count( ..clip );1)
+				::DeleteObject( ..clip[i][2] );
+			..clip = {};
+			winset.listview.replaceItems(..clip);
+		}
+ 	} };
+} )
+/*}}*/
+
+/*列表框事件{{*/
+winset.listview.onnotify = function(id,code,ptr){
+	select( code ){
+		case 0xFFFFFF9B/*_LVN_ITEMCHANGED*/{
+			var n = winset.listview.getSelection();
+			if( n )
+				winset.plus.foreground = ..clip[n][2];
+			else
+				winset.plus.foreground = 0x00FFFFFF;
+		}
+		case 0xFFFFFFFB/*_NM_RCLICK*/{
+			popmenu.enable( 1,true );
+			popmenu.enable( 2,true );
+			popmenu.enable( 3,true );
+			popmenu.enable( 5,true );
+			popmenu.enable( 6,true );
+			popmenu.enable( 7,true );
+			var n = winset.listview.getSelection();
+			if( n == 0 ){
+				popmenu.enable( 2,false );
+				popmenu.enable( 3,false );
+				popmenu.enable( 5,false );
+				popmenu.enable( 6,false );
+				popmenu.enable( 7,false );
+			}
+			if( config.Clip.monitor == 'ON' )
+				popmenu.enable( 1,false );
+			if( config.Clip.autosave =='ON' )
+				popmenu.enable( 3,false );
+			popmenu.popup();
+		}
+	}
+}
+/*}}*/
+
+/*路径相关的几个按钮{{*/
+winset.button_open.oncommand = function(id,event){
+	if( !io.exist( winset.edit_path.text ) )
+		io.createDir( winset.edit_path.text );
+	process.explore( winset.edit_path.text );
+}
+
+winset.button_change.oncommand = function(id,event){
+	var path = fsys.dlg.dir( winset.edit_path.text,,"选择目录","使用此目录");
+	if( path )
+		winset.edit_path.text = path;
+}
+
+winset.button_reset.oncommand = function(id,event){
+	winset.edit_path.text = io.appData("\QuickViewPic\autosave");
+}
+/*}}*/
+
+/*保存设置{{*/
+winset.button_save.oncommand = function(id,event){
+	if( winset.checkbox_monitor.checked )
+		config.Clip.monitor = 'ON';
+	else
+		config.Clip.monitor = 'OFF';
+	if( winset.checkbox_autosave.checked )
+		config.Clip.autosave = 'ON';
+	else
+		config.Clip.autosave = 'OFF';
+	if( fsys.isDir(winset.edit_path.text) )
+		config.Clip.savepath = winset.edit_path.text;
+	var filename = winset.edit_name.text;
+	if( #filename ){
+		try{ tostring( time(), filename );}
+		catch(){ filename = null;}
+		if( !( filename && filename == fsys.path.validName(filename) ) )
+			filename = '%y%m%d_%H%M%S';
+	}
+	else
+		filename = '%y%m%d_%H%M%S';
+	config.Clip.filename = filename;
+	winset.edit_name.text = filename;
+	if( winset.combobox.selIndex )
+		config.Clip.format = winset.combobox.selText;
+	winset.msgbox("设置已保存！","信息",,1000);
+}
+/*}}*/
+
+//订阅消息
+subscribe("ClipChange",function(...){
+	winset.listview.replaceItems(..clip);
+} )
+
+winset.show();
+win.loopMessage();
+return winset;
