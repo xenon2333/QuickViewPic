@@ -68,9 +68,9 @@ A small tool to view images quickly.
 ![screenshot](./Screenshots/Screenshot_7.png)
 
 ## 详细介绍
-[动图演示](https://flowus.cn/ce8c4370-5d95-4c10-8bad-b24465376c31)
+[动图演示](https://flowus.cn/share/ce8c4370-5d95-4c10-8bad-b24465376c31)
 
-[帮助文档](https://flowus.cn/8326c462-726c-4fe1-a829-fcf710e1f191)
+[帮助文档](https://flowus.cn/share/8326c462-726c-4fe1-a829-fcf710e1f191)
 
 ## 其它要说的
 虽然我跟[@hamoyy](https://meta.appinn.net/t/topic/38641)要了他的源码，不过他之前是用易语言写的，而我上一次用易语言还是几年之前的事情了，因此我没能打开看源码。这个程序是根据我的观察，基于原有的功能先仿制了一个，再根据我个人需要添加了一些功能。
