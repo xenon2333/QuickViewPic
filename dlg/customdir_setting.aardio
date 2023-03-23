@@ -43,7 +43,7 @@ winset.button_scan.oncommand = function(id,event){
 	child = {};
 	var i = 1;
 	var lastdir = "";
-	fsys.enum( config.CustomDir.root, {"*.jpg";"*.png";"*.bmp"},
+	fsys.enum( config.CustomDir.root, {"*.jpg";"*.jpeg";"*.png";"*.bmp";"*.gif"},
 		function(dirname,filename,fullpath,findData){
 			var pathinfo = io.splitpath(fullpath);
 			if( pathinfo.dir != lastdir ){
@@ -82,7 +82,6 @@ winset.button_choose.oncommand = function(id,event){
 		config.CustomDir.current = config.CustomDir.root;
 		winset.msgbox("未进行选择，将默认使用根目录作为当前目录！","提示");
 	}
-	//winset.edit2.text = config.CustomDir.current;
 	winset.endModal(true);
 }
 
