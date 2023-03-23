@@ -3,7 +3,7 @@ import fsys;
 import fsys.dlg.dir;
 import win.ui;
 /*DSG{{*/
-var winset = win.form(text="设置：自定义目录";right=379;bottom=594;border="dialog frame";max=false;min=false)
+var winset = win.form(text="高级：自定义目录";right=379;bottom=594;border="dialog frame";max=false;min=false)
 winset.add(
 button_addblacklist={cls="button";text="加入黑名单";left=140;top=285;right=240;bottom=315;font=LOGFONT(h=-14);z=7};
 button_changeroot={cls="button";text="修改根目录";left=275;top=33;right=365;bottom=63;font=LOGFONT(h=-14);z=3};
@@ -82,6 +82,7 @@ winset.button_choose.oncommand = function(id,event){
 		config.CustomDir.current = config.CustomDir.root;
 		winset.msgbox("未进行选择，将默认使用根目录作为当前目录！","提示");
 	}
+	//winset.edit2.text = config.CustomDir.current;
 	winset.endModal(true);
 }
 

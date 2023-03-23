@@ -3,82 +3,56 @@ import fonts.fontAwesome;
 import fsys;
 import gdip.bitmap;
 import process;
+import win.clip.gif;
 import win.clip.viewer;
 import win.timer;
 import win.ui;
+import win.ui.atom;
 import win.ui.menu;
 import win.ui.tracker;
-import winex.tooltip;
 win.ui.disableDpiScaling = true;//禁用DPI自动缩放，避免显示异常
 
 //声明全局常量和变量
-_version = "0.2.0";
+_version = "0.3.0";
 clip = {};
 /*DSG{{*/
 var winlist = win.form(text="列表";right=99;bottom=39;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
 winlist.add(
-button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=-13951306;color=16777215;font=LOGFONT(h=-14);z=1};
-button_pgdown={cls="plus";left=80;top=20;right=100;bottom=40;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF054';z=4};
-button_pgup={cls="plus";left=0;top=20;right=20;bottom=40;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF053';z=3};
-listbox={cls="listbox";left=0;top=40;right=100;bottom=120;bgcolor=3618615;color=16777215;font=LOGFONT(h=-14);integralHeight=0;items={"1";"2";"3"};z=2};
-static={cls="static";text="第1页";left=20;top=20;right=80;bottom=40;align="center";center=1;color=16777215;font=LOGFONT(h=-14);transparent=1;z=5}
+button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=-13951306;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);z=1};
+button_pgdown={cls="plus";left=80;top=20;right=100;bottom=40;dr=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF054';z=4};
+button_pgup={cls="plus";left=0;top=20;right=20;bottom=40;dl=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF053';z=3};
+listbox={cls="listbox";left=0;top=40;right=100;bottom=120;bgcolor=3618615;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);integralHeight=0;items={"1";"2";"3"};z=2};
+plus_tip={cls="plus";left=80;top=0;right=120;bottom=40;z=6};
+static={cls="static";text="第1/1页";left=20;top=20;right=80;bottom=40;align="center";aw=1;center=1;color=16777215;dt=1;font=LOGFONT(h=-14);transparent=1;z=5}
 )
 /*}}*/
 
+var atom,hwnd = winlist.atom("FA63F815-E17E-47C0-AC07-2026D7B6D745");
+if(!atom){
+	win.quitMessage();	return;
+}
+
 var value = {};//图片地址数组
 var page, maxpage;//页码
-
-/*监视鼠标是否在窗口内{{*/
-var mtimer = win.timer(winlist);
-mtimer.onTimer = function(){
-	var msPos = ::POINT();
-	::User32.GetCursorPos( msPos );
-	var hwnd = ::User32.WindowFromPoint( msPos.x, msPos.y );
-	select( hwnd ){
-		case winlist.hwnd,winlist.button_menu.hwnd,winlist.button_pgup.hwnd,winlist.button_pgdown.hwnd,winlist.listbox.hwnd
-			movewin('Show');
-		else
-			movewin('Hide');
-	}
-}
-/*}}*/
-
-/*刷新翻页状态{{*/
-var ptimer = win.timer(winlist);
-ptimer.onTimer = function(){
-	maxpage = math.ceil( table.count( value )/config.Perpage );
-	if( page == 1 )
-		winlist.button_pgup.disabled = 1;
-	else
-		winlist.button_pgup.disabled = 0;
-	if( maxpage == 0 || page == maxpage )
-		winlist.button_pgdown.disabled = 1;
-	else
-		winlist.button_pgdown.disabled = 0;
-	if( winlist.static.text != "第" ++ page ++"/" ++ maxpage ++ "页" )
-		winlist.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
-}
-/*}}*/
-
-/*创建菜单{{*/
 var menu = win.ui.popmenu( winlist );
+var mtimer = win.timer(winlist);
+
+/*添加菜单{{*/
 menu.addTable( {
 	{ "QuickViewPic"; };
 	{ /*分隔线*/ };
+	{ "刷新列表"; function(id){
+		loaddata();
+ 	} };
 	{ "全局设置"; function(id){
+		mtimer.disable();
 		winlist.show(false);
-		if( winlist.loadForm("\dlg\global_setting.aardio").doModal() ){
+		if( winlist.loadForm("\dlg\global_setting.aardio").doModal() )
 			initialize();
-			movewin('Hide');
-			var scrw, scrh = win.getScreen();
-			if( config.Dockside == 'Right' )
-				winex.tooltip.trackPopup('我藏在这里了哦！',scrw,winlist.bottom);
-			else
-				winex.tooltip.trackPopup('我藏在这里了哦！',1,winlist.bottom);
-		}
-		winlist.show();
+		mtimer.enable(100,);
  	} };
 	{ "高级设置"; function(id){
+		mtimer.disable();
 		winlist.show(false);
 		select( config.Mode ){
 			case 'Default'
@@ -96,48 +70,24 @@ menu.addTable( {
 				loaddata();
 			}
 		}
-		winlist.show();
+		mtimer.enable(100,);
 	} };
  	{ /*分隔线*/ };
 	{ "主页"; function(id){
 		process.openUrl("https://github.com/xenon2333/QuickViewPic");
  	} };
  	{ "关于"; function(id){
-		var str = "QuickViewPic v"++_version++'\r\nWritten by Xenon\r\nEmail：xenon2333@qq.com';
+ 		mtimer.disable();
 		winlist.show(false);
+		var str = "QuickViewPic v"++_version++'\r\nWritten by Xenon\r\nEmail：xenon2333@qq.com';
 		winlist.msgbox(str,"关于");
-		winlist.show();
+		mtimer.enable(100,);
  	} };
 	{ "退出"; function(id){  
 		winlist.close();
  	} };
 } )
 menu.enable(1,false);
-/*}}*/
-
-/*移动窗口{{*/
-movewin = function( v ){
-	var scrw, scrh = win.getScreen();
-	var x, y, z;
-	y = scrh/2 - (40+config.Perpage*19)/2;
-	if( y < 0 )
-		y = 0;
-	select( config.Dockside ) {
-		case 'Left' x, z = 0, -97;
-		case 'Right' x, z = scrw-100, 97;
-		else x, z = 0, -97;
-	}
-	select( v ) {
-		case 'Show'{
-			winlist.setPos(x,y);
-			winlist.listbox.show();
-		}
-		case 'Hide'{
-			winlist.listbox.show(false);
-			winlist.setPos(x+z,y);
-		}
-	}
-}
 /*}}*/
 
 /*菜单按钮{{*/
@@ -148,7 +98,10 @@ winlist.button_menu.onMouseLeave = function(wParam,lParam){
 	winlist.button_menu.text = "QuickViewPic";
 }
 winlist.button_menu.onMouseClick = function(wParam,lParam){
-    menu.popup();
+	menu.popup();
+}
+winlist.button_menu.onRightMouseUp = function(wParam,lParam){
+    winlist.close();
 }
 /*}}*/
 
@@ -157,23 +110,63 @@ winlist.button_pgup.onMouseClick = function(wParam,lParam){
     if( page > 1 ){
     	page--;
     	refresh();
+    	winlist.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
     }
+    if( page == 1 )
+		winlist.button_pgup.disabled = 1;
+	else
+		winlist.button_pgup.disabled = 0;
+	if( maxpage == 0 || page == maxpage )
+		winlist.button_pgdown.disabled = 1;
+	else
+		winlist.button_pgdown.disabled = 0;
 }
 winlist.button_pgdown.onMouseClick = function(wParam,lParam){
     if( page < maxpage ){
     	page++;
     	refresh();
+    	winlist.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
     }
+    if( page == 1 )
+		winlist.button_pgup.disabled = 1;
+	else
+		winlist.button_pgup.disabled = 0;
+    if( maxpage == 0 || page == maxpage )
+		winlist.button_pgdown.disabled = 1;
+	else
+		winlist.button_pgdown.disabled = 0;
+}
+/*}}*/
+
+/*监视鼠标是否在窗口内{{*/
+mtimer.onTimer = function(){
+	var msPos = ::POINT();
+	::User32.GetCursorPos( msPos );
+	var hwnd = ::User32.WindowFromPoint( msPos.x, msPos.y );
+	select( hwnd ){
+		case winlist.plus_tip.hwnd {
+			winlist.plus_tip.show(false);
+			win.setTopmost(winlist.hwnd);
+		}
+		case winlist.hwnd,winlist.button_menu.hwnd,winlist.button_pgup.hwnd,winlist.button_pgdown.hwnd,winlist.listbox.hwnd {}
+		else {
+			if( win.getClass(hwnd) != "#32768" || ::User32.GetWindowThreadProcessId(hwnd,0) != ..thread.getId() ){
+				winlist.show(false);
+				win.setTopmost(winlist.plus_tip.hwnd);
+			}
+		}
+	}
 }
 /*}}*/
 
 /*加载数据{{*/
 loaddata = function(){
 	page = 1;
+	winlist.button_pgup.disabled = 1;
 	value = {};
 	select( config.Mode ){
 		case 'Default'{
-			var data = fsys.list( io._exedir,,{"*.jpg";"*.png";"*.bmp"});
+			var data = fsys.list( io._exedir,,{"*.jpg";"*.jpeg";"*.png";"*.bmp";"*.gif"});
 			var n = table.count( data )/2;
 			if( n == 0 )
 				winlist.listbox.items = {"当前目录无图片";"请检查设置"};
@@ -190,7 +183,7 @@ loaddata = function(){
 				winlist.msgbox("当前路径不存在，程序已自动调整到默认目录。","提示");
 				config.CustomDir.current = io._exedir;
 			}
-			var data = fsys.list( config.CustomDir.current,,{"*.jpg";"*.png";"*.bmp"});
+			var data = fsys.list( config.CustomDir.current,,{"*.jpg";"*.jpeg";"*.png";"*.bmp";"*.gif"});
 			var n = table.count( data )/2;
 			if( n == 0 )
 				winlist.listbox.items = {"当前目录无图片";"请检查设置"};
@@ -217,7 +210,7 @@ loaddata = function(){
 		case 'Clip'{
 			var n = table.count( ..clip );
 			if( n == 0 )
-				winlist.listbox.items = {"请进入高级设置";"手动配置剪贴板";};
+				winlist.listbox.items = {"请进入高级设置";"手动配置剪贴板"};
 			else {
 				for(i=1;n;1){
 					value[..clip[i][1]] = {};
@@ -227,6 +220,10 @@ loaddata = function(){
 			}
 		}
 	}
+	maxpage = math.ceil( table.count( value )/config.Perpage );
+	if( maxpage == 0 || page == maxpage )
+		winlist.button_pgdown.disabled = 1;
+	winlist.static.text = "第1/" ++ maxpage ++ "页";
 	refresh();
 }
 /*}}*/
@@ -244,12 +241,15 @@ refresh = function(){
 		}
 		winlist.listbox.items = items;
 	}
-	winlist.listbox.height = 19*table.count(winlist.listbox.items);
+	if( winlist.listbox.height != 19*table.count(winlist.listbox.items) ){
+		winlist.listbox.height = 19*table.count(winlist.listbox.items);
+		winlist.height = 40+winlist.listbox.height;
+	}
 }
 /*}}*/
 
-/*窗口初始化{{*/
-initialize = function(){
+/*更改主题色{{*/
+changetheme = function(){
 	if( config.Theme == 'Light' ){
 		winlist.bgcolor = 16119285;
 		winlist.static.color = 0;
@@ -286,6 +286,11 @@ initialize = function(){
 		});
 		winlist.listbox.bgcolor = 16119285;
 		winlist.listbox.color = 0;
+		winlist.plus_tip.skin({
+			foreground={
+				default=0xFFF5F5F5;
+			}
+		})
 	}
 	else {
 		winlist.bgcolor = 3618615;
@@ -323,11 +328,37 @@ initialize = function(){
 		});
 		winlist.listbox.bgcolor = 3618615;
 		winlist.listbox.color = 16777215;
+		winlist.plus_tip.skin({
+			foreground={
+				default=0xFFB61E2B;
+			}
+		})
 	}
+	winlist.redrawBackground();
+}
+/*}}*/
+
+/*窗口初始化{{*/
+initialize = function(){
+	winlist.width = config.Width;
+	changetheme();
 	winlist.button_pgup.disabled = 0;
 	winlist.button_pgdown.disabled = 0;
-	winlist.redrawBackground();
 	loaddata();
+	var scrw, scrh = win.getScreen();
+	var y = scrh/2 - (40+config.Perpage*19)/2;
+	select( config.Dockside ) {
+		case 'Left' {
+			winlist.setPos(0,y);
+			winlist.plus_tip.left = -20;
+			winlist.plus_tip.right = 20;
+		}
+		case 'Right' {
+			winlist.setPos(scrw-config.Width,y);
+			winlist.plus_tip.left = scrw-20;
+			winlist.plus_tip.right = scrw+20;
+		}
+	}
 }
 /*}}*/
 
@@ -344,6 +375,7 @@ winlist.onDrawClipboard = function(){
 		..clip[n][2] = hbmp;
 		..clip[n][3] = tostring( time.tick() );
 		loaddata();
+		refresh();
 		publish("ClipChange",);
 		publish("AutoSave",);
 	}
@@ -365,6 +397,7 @@ track_listbox.onMouseLeave = function(wParam,lParam){
 	win.setTopmost(winlist.hwnd);//窗口置顶
 }
 track_listbox.onRightMouseUp = function(wParam,lParam){
+	if( config.Oneclickcopy != 'ON') return;
     var x,y = win.getMessagePos();
 	var n = winlist.listbox.hitTest(x,y,true);
 	if( !n ) return;
@@ -380,11 +413,28 @@ track_listbox.onRightMouseUp = function(wParam,lParam){
 			win.clip.writeBitmap( value[n][2], false );
 	}
 	else {
-		var bmp = gdip.bitmap( value[n][2] );
-		var hbmp = bmp.copyHandle();
-		win.clip.writeBitmap( hbmp, false );
-		::DeleteObject(hbmp);
-		bmp.dispose();
+		if( io.splitpath(value[n][2]).ext == ".gif" )
+			win.clip.gif.write(value[n][2]);
+		else{
+			var bmp = gdip.bitmap( value[n][2] );
+			var hbmp = bmp.copyHandle();
+			win.clip.writeBitmap( hbmp, false );
+			::DeleteObject(hbmp);
+			bmp.dispose();
+		}
+	}
+}
+track_listbox.onMouseWheel = function(flags,delta,lParam){
+	if( config.Wheelturn != 'ON')
+		return;
+	var v = delta/math.abs(delta);
+	if( v == -1 && winlist.button_pgdown.disabled == 0 ){
+		winlist.button_pgdown.onMouseClick();
+		track_listbox.onMouseMove();
+	}
+	else if( v == 1 && winlist.button_pgup.disabled == 0 ){
+		winlist.button_pgup.onMouseClick();
+		track_listbox.onMouseMove();
 	}
 }
 /*}}*/
@@ -403,21 +453,14 @@ subscribe("AutoSave",function(...){
 } )
 /*}}*/
 
-/*初始化程序{{*/
-winlist.listbox.orphanWindow();
-winlist.loadForm("\dlg\pic.aardio");
-initialize();
-movewin('Show');
-ptimer.onTimer();
-ptimer.enable(50,);
-winlist.show();
-win.setTopmost(winlist.hwnd);//窗口置顶
-win.delay(1000);//首次启动先显示1秒再贴边隐藏
-mtimer.enable(100,);
-var scrw, scrh = win.getScreen();
-if( config.Dockside == 'Right' )
-	winex.tooltip.trackPopup('我藏在这里了哦！',scrw,winlist.bottom);
+/*程序初始化{{*/
+mtimer.enable(100,);//启动计时器
+if( config.Plus == 'ON' )
+	winlist.loadForm("\dlg\pic_plus.aardio");
 else
-	winex.tooltip.trackPopup('我藏在这里了哦！',1,winlist.bottom);
+	winlist.loadForm("\dlg\pic.aardio");
+winlist.plus_tip.border = {radius=-1};//设置悬浮窗样式
+winlist.plus_tip.orphanWindow(true,);//悬浮
+initialize();//窗口初始化
 /*}}*/
 win.loopMessage();

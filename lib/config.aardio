@@ -4,7 +4,14 @@ import fsys.path;
 import fsys.table;
 
 config = fsys.table(io.appData("/QuickViewPic/config.cfg"));
-
+//删除无关量
+for(k,v in config){
+	select(k){
+		case '_gc','Mode','Dockside','Perpage','Theme','Width','Oneclickcopy','Wheelturn','Plus','CustomDir','CustomList','Clip'{}
+		else
+			config[k] = null;
+	}
+}
 //全局设置
 select( config.Mode ){
 	case 'Default','CustomDir','CustomList','Clip' {}
@@ -26,6 +33,24 @@ select( config.Theme ){
 	else
 		config.Theme = 'Dark';
 }
+if( config.Width != null ){
+	if( !math.isInteger( config.Width ) )
+		config.Width = math.ceil( math.abs( config.Width ) );
+	else
+		config.Width = math.abs( config.Width );
+	if( config.Width > 300 )
+		config.Width = 300;
+	if( config.Width < 100 )
+		config.Width = 100;
+}
+else
+	config.Width = 100;
+if( config.Oneclickcopy != 'ON' )
+	config.Oneclickcopy = 'OFF';
+if( config.Wheelturn != 'ON' )
+	config.Wheelturn = 'OFF';
+if( config.Plus != 'ON' )
+	config.Plus = 'OFF';
 
 //自定义目录设置
 if( !table.count(config.CustomDir) ){
@@ -65,16 +90,10 @@ config.CustomList = tab;
 
 //剪贴板设置
 if( table.count(config.Clip) ){
-	select( config.Clip.monitor ) {
-		case 'ON','OFF' {}
-		else
-			config.Clip.monitor = 'OFF';
-	}
-	select( config.Clip.autosave ) {
-		case 'ON','OFF' {}
-		else
-			config.Clip.autosave = 'OFF';
-	}
+	if( config.Clip.monitor != 'ON' )
+		config.Clip.monitor = 'OFF';
+	if( config.Clip.autosave != 'ON' )
+		config.Clip.autosave = 'OFF';
 	config.Clip.savepath = fsys.path.removeBackslash( config.Clip.savepath );
 	try{ tostring( time(), config.Clip.filename );}
 	catch(){ config.Clip.filename = '%y%m%d_%H%M%S'; }
@@ -104,10 +123,13 @@ end intellisense**/
 .Dockside = 窗口吸附方向
 .Perpage = 每页项目数量
 .Theme = 主题色
+.Width = 窗口宽度
+.Oneclickcopy = 右键一键复制
+.Wheelturn = 滚轮翻页
+.Plus = 启用高级图像控件
 .CustomDir = 自定义目录列表
 .CustomDir.current = 当前选择的路径
 .CustomDir.root = 自定义的根目录
-.CustomDir.child = 根目录下含图片的子目录
 .CustomDir.blacklist = 黑名单
 .CustomList = 自定义列表
 .Clip = 剪贴板设置

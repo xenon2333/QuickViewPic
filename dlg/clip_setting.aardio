@@ -8,7 +8,7 @@ import win.clip;
 import win.ui;
 import win.ui.menu;
 /*DSG{{*/
-var winset = win.form(text="设置：剪贴板";right=899;bottom=559;border="dialog frame";max=false)
+var winset = win.form(text="剪贴板";right=899;bottom=559;border="dialog frame";max=false)
 winset.add(
 button_change={cls="button";text="修改目录";left=130;top=415;right=220;bottom=445;font=LOGFONT(h=-14);z=11};
 button_open={cls="button";text="浏览目录";left=20;top=415;right=110;bottom=445;font=LOGFONT(h=-14);z=10};
@@ -30,9 +30,8 @@ static3={cls="static";text='%y 年 %m 月 %d 日\r\n%H 时 %M 分 %S 秒';left=2
 )
 /*}}*/
 
-if( !winset.parent ){
+if( !winset.parent )
 	return;
-}
 
 /*读取配置{{*/
 if( config.Clip.monitor == 'ON' )
@@ -161,9 +160,9 @@ winset.listview.onnotify = function(id,code,ptr){
 		case 0xFFFFFF9B/*_LVN_ITEMCHANGED*/{
 			var n = winset.listview.getSelection();
 			if( n )
-				winset.plus.foreground = ..clip[n][2];
+				winset.plus.foreground = ..clip[n][[2]];
 			else
-				winset.plus.foreground = 0x00FFFFFF;
+				winset.plus.setForeground(0x00000000);
 		}
 		case 0xFFFFFFFB/*_NM_RCLICK*/{
 			popmenu.enable( 1,true );

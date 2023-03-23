@@ -31,7 +31,7 @@ for(i=1;num;1){
 
 /*添加项目{{*/
 winset.button_add.oncommand = function(id,event){
-	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","选择图片");
+	var path = fsys.dlg.open("支持的图片格式|*.jpg;*.jpeg;*.png;*.bmp;*.gif|","选择图片");
 	if( path ){
 		var n = table.count( list ) +1;
 		list[n] = {};
@@ -50,7 +50,7 @@ winset.button_edit.oncommand = function(id,event){
 		winset.msgbox("请选中项目！","提示");
 		return;
 	}
-	var path = fsys.dlg.open("支持的图片格式(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp|","替换图片", io.splitpath(list[n][3]).dir );
+	var path = fsys.dlg.open("支持的图片格式|*.jpg;*.jpeg;*.png;*.bmp;*.gif|","替换图片", io.splitpath(list[n][3]).dir );
 	if( path ){
 		list[n][2] = io.splitpath(path).file;
 		list[n][3] = path;
