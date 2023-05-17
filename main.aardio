@@ -13,7 +13,7 @@ import win.ui.tracker;
 win.ui.disableDpiScaling = true;//禁用DPI自动缩放，避免显示异常
 
 //声明全局常量和变量
-_version = "0.3.0";
+_version = "0.4.0";
 clip = {};
 /*DSG{{*/
 var winlist = win.form(text="列表";right=99;bottom=39;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
@@ -101,7 +101,7 @@ winlist.button_menu.onMouseClick = function(wParam,lParam){
 	menu.popup();
 }
 winlist.button_menu.onRightMouseUp = function(wParam,lParam){
-    winlist.close();
+    menu.popup();
 }
 /*}}*/
 
@@ -347,6 +347,8 @@ initialize = function(){
 	loaddata();
 	var scrw, scrh = win.getScreen();
 	var y = scrh/2 - (40+config.Perpage*19)/2;
+	if( y < 0 )
+		y = 0;
 	select( config.Dockside ) {
 		case 'Left' {
 			winlist.setPos(0,y);

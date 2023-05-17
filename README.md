@@ -6,6 +6,9 @@ A small tool to view images quickly.
 程序灵感来自[@hamoyy](https://meta.appinn.net/t/topic/38641)，全部使用[aardio](https://www.aardio.com)编写。
 
 作者邮箱：xenon2333@qq.com
+
+[帮助文档](https://blog.xenon2333.online/2023/0517-QuickViewPic帮助文档.html)
+
 ## 使用场景
 - 需要重复快速查看指定图片，如查询尺码表。
 - 需要将多张截图“钉”在屏幕上，且要求快速来回切换。
@@ -53,28 +56,28 @@ A small tool to view images quickly.
 ## 截图
 - 界面：
 
-![screenshot](./Screenshots/Screenshot_1.png)
+![screenshot](./Screenshots/screenshot_1.png)
 
-![screenshot](./Screenshots/Screenshot_2.png)
+![screenshot](./Screenshots/screenshot_2.png)
 
 - 设置界面：
 
-![screenshot](./Screenshots/Screenshot_3.png)
+![screenshot](./Screenshots/screenshot_3.png)
 
-![screenshot](./Screenshots/Screenshot_4.png)
+![screenshot](./Screenshots/screenshot_4.png)
 
-![screenshot](./Screenshots/Screenshot_5.png)
+![screenshot](./Screenshots/screenshot_5.png)
 
-![screenshot](./Screenshots/Screenshot_6.png)
+![screenshot](./Screenshots/screenshot_6.png)
 
 - 隐藏时的悬浮球
 
-![screenshot](./Screenshots/Screenshot_7.png)
+![screenshot](./Screenshots/screenshot_7.png)
 
-## 详细介绍
-[动图演示](https://flowus.cn/share/ce8c4370-5d95-4c10-8bad-b24465376c31)
+## 动图演示
+![看图演示](./Screenshots/screenshot_1.gif)
 
-[帮助文档](https://flowus.cn/share/8326c462-726c-4fe1-a829-fcf710e1f191)
+![剪贴板演示](./Screenshots/screenshot_2.gif)
 
 ## 其它要说的
 虽然我跟[@hamoyy](https://meta.appinn.net/t/topic/38641)要了他的源码，不过他之前是用易语言写的，而我上一次用易语言还是几年之前的事情了，因此我没能打开看源码。这个程序是根据我的观察，基于原有的功能先仿制了一个，再根据我个人需要添加了一些功能。

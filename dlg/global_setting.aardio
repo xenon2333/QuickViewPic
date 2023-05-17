@@ -3,20 +3,20 @@ import win.ui;
 /*DSG{{*/
 var winset = win.form(text="全局设置";right=419;bottom=299;border="dialog frame";max=false;min=false)
 winset.add(
-button_clip={cls="button";text="剪贴板";left=280;top=255;right=400;bottom=285;font=LOGFONT(h=-14);z=23};
-button_dir={cls="button";text="自定义目录";left=20;top=255;right=140;bottom=285;font=LOGFONT(h=-14);z=21};
-button_list={cls="button";text="自定义图片列表";left=150;top=255;right=270;bottom=285;font=LOGFONT(h=-14);z=22};
-button_ok={cls="button";text="保存并应用";left=310;top=197;right=410;bottom=232;font=LOGFONT(h=-14);z=19};
+button_clip={cls="button";text="剪贴板";left=280;top=215;right=400;bottom=245;font=LOGFONT(h=-14);z=23};
+button_dir={cls="button";text="自定义目录";left=20;top=215;right=140;bottom=245;font=LOGFONT(h=-14);z=21};
+button_list={cls="button";text="自定义图片列表";left=150;top=215;right=270;bottom=245;font=LOGFONT(h=-14);z=22};
+button_ok={cls="button";text="保存并应用";left=300;top=260;right=400;bottom=295;font=LOGFONT(h=-14);z=19};
 checkbox_copy={cls="checkbox";text="启用右键一键复制";left=260;top=130;right=400;bottom=155;font=LOGFONT(h=-14);z=16};
 checkbox_pageturn={cls="checkbox";text="启用滚轮翻页";left=260;top=155;right=400;bottom=180;font=LOGFONT(h=-14);z=17};
-checkbox_plus={cls="checkbox";text="使用高级图像控件浏览图片（重启生效）";left=20;top=200;right=310;bottom=220;font=LOGFONT(h=-14);z=18};
+checkbox_plus={cls="checkbox";text="使用高级图像控件浏览图片（重启生效）";left=20;top=265;right=310;bottom=285;font=LOGFONT(h=-14);z=18};
 combobox={cls="combobox";left=350;top=27;right=400;bottom=52;edge=1;font=LOGFONT(h=-14);items={"20";"25";"50";"100"};mode="dropdownlist";z=14};
 edit={cls="edit";left=350;top=66;right=400;bottom=91;autovscroll=false;edge=1;font=LOGFONT(h=-14);num=1;z=15};
 groupbox={cls="groupbox";text="窗口吸附方向";left=10;top=5;right=130;bottom=95;edge=1;z=1};
 groupbox2={cls="groupbox";text="工作模式";left=10;top=100;right=245;bottom=190;edge=1;z=7};
 groupbox3={cls="groupbox";text="主题颜色";left=135;top=5;right=245;bottom=95;edge=1;z=4};
 groupbox4={cls="groupbox";text="其它设置";left=250;top=5;right=410;bottom=190;edge=1;z=12};
-groupbox5={cls="groupbox";text="高级设置入口";left=10;top=235;right=410;bottom=295;edge=1;z=20};
+groupbox5={cls="groupbox";text="高级设置入口";left=10;top=195;right=410;bottom=255;edge=1;z=20};
 radiobutton_clip={cls="radiobutton";text="剪贴板";left=25;top=155;right=105;bottom=175;font=LOGFONT(h=-14);z=11};
 radiobutton_customdir={cls="radiobutton";text="自定义目录";left=110;top=125;right=240;bottom=145;font=LOGFONT(h=-14);z=9};
 radiobutton_customlist={cls="radiobutton";text="自定义图片列表";left=110;top=155;right=240;bottom=175;font=LOGFONT(h=-14);z=10};

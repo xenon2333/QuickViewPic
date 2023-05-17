@@ -3,7 +3,7 @@ import fsys.dlg;
 import fsys.dlg.dir;
 import win.ui;
 /*DSG{{*/
-var winset = win.form(text="设置：自定义图片列表";right=439;bottom=304;border="dialog frame";max=false;min=false;mode="popup")
+var winset = win.form(text="设置：自定义图片列表";right=439;bottom=304;acceptfiles=1;border="dialog frame";max=false;min=false;mode="popup")
 winset.add(
 button_add={cls="button";text="添加项目";left=10;top=225;right=100;bottom=255;z=2};
 button_clear={cls="button";text="清空列表";left=10;top=265;right=100;bottom=295;z=5};
@@ -30,15 +30,30 @@ for(i=1;num;1){
 /*}}*/
 
 /*添加项目{{*/
-winset.button_add.oncommand = function(id,event){
-	var path = fsys.dlg.open("支持的图片格式|*.jpg;*.jpeg;*.png;*.bmp;*.gif|","选择图片");
+winset.onDropFiles = function(files){
+	var path = files;
 	if( path ){
-		var n = table.count( list ) +1;
-		list[n] = {};
-		list[n][1] = n;
-		list[n][2] = io.splitpath(path).file;
-		list[n][3] = path;
-		winset.listview.replaceItems(list);
+		for(i=1;table.count(path);1){
+			var n = table.count( list ) +1;
+			list[n] = {};
+			list[n][1] = n;
+			list[n][2] = io.splitpath(path[i]).file;
+			list[n][3] = path[i];
+			winset.listview.replaceItems(list);
+		}
+	}
+}
+winset.button_add.oncommand = function(id,event){
+	var path = fsys.dlg.openEx("支持的图片格式|*.jpg;*.jpeg;*.png;*.bmp;*.gif|","选择图片");
+	if( path ){
+		for(i=1;table.count(path);1){
+			var n = table.count( list ) +1;
+			list[n] = {};
+			list[n][1] = n;
+			list[n][2] = io.splitpath(path[i]).file;
+			list[n][3] = path[i];
+			winset.listview.replaceItems(list);
+		}
 	}
 }
 /*}}*/
