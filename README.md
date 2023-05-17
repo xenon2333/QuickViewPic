@@ -75,9 +75,9 @@ A small tool to view images quickly.
 ![screenshot](./Screenshots/screenshot_7.png)
 
 ## 动图演示
-![看图演示](./Screenshots/screenshot_1.gif)
+![看图演示](./Screenshots/screenshots_1.gif)
 
-![剪贴板演示](./Screenshots/screenshot_2.gif)
+![剪贴板演示](./Screenshots/screenshots_2.gif)
 
 ## 其它要说的
 虽然我跟[@hamoyy](https://meta.appinn.net/t/topic/38641)要了他的源码，不过他之前是用易语言写的，而我上一次用易语言还是几年之前的事情了，因此我没能打开看源码。这个程序是根据我的观察，基于原有的功能先仿制了一个，再根据我个人需要添加了一些功能。
