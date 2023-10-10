@@ -9,7 +9,7 @@ A small tool to view images quickly.
 
 下载地址：[Release](https://github.com/xenon2333/QuickViewPic/releases) / [钛盘](https://tmp.link/room/646f1729d9aa7)
 
-[帮助文档](https://blog.xenon2333.online/posts/2023/5.html)
+[帮助文档](https://blog.xenon2333.online/2023/5.html)
 
 ## 使用场景
 - 需要重复快速查看指定图片，如查询尺码表。
