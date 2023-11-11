@@ -1,0 +1,207 @@
+import fonts.fontAwesome;
+import win.clip.viewer;
+import win.clip.gif;
+import win.ui;
+import win.ui.tracker;
+/*DSG{{*/
+var winform = win.form(text="列表";right=99;bottom=99;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
+winform.add(
+button_pgdown={cls="plus";left=80;top=0;right=100;bottom=20;dr=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF054';z=3};
+button_pgup={cls="plus";left=0;top=0;right=20;bottom=20;dl=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF053';z=2};
+listbox={cls="listbox";left=0;top=20;right=100;bottom=100;bgcolor=3618615;color=16777215;db=1;dl=1;dr=1;dt=1;font=LOGFONT(h=-15);integralHeight=0;items={};z=1};
+static={cls="static";text="第1/1页";left=20;top=0;right=80;bottom=20;align="center";aw=1;center=1;color=16777215;dt=1;font=LOGFONT(h=-14);transparent=1;z=4}
+)
+/*}}*/
+
+if( !winform.parent )
+	return;
+
+var page, maxpage;//页码
+
+/*翻页按钮{{*/
+winform.button_pgup.onMouseClick = function(wParam,lParam){
+    if( page > 1 ){
+    	page--;
+    	refresh();
+    	winform.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
+    }
+    if( page == 1 )
+		winform.button_pgup.disabled = 1;
+	else
+		winform.button_pgup.disabled = 0;
+	if( maxpage == 0 || page == maxpage )
+		winform.button_pgdown.disabled = 1;
+	else
+		winform.button_pgdown.disabled = 0;
+}
+winform.button_pgdown.onMouseClick = function(wParam,lParam){
+    if( page < maxpage ){
+    	page++;
+    	refresh();
+    	winform.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
+    }
+    if( page == 1 )
+		winform.button_pgup.disabled = 1;
+	else
+		winform.button_pgup.disabled = 0;
+    if( maxpage == 0 || page == maxpage )
+		winform.button_pgdown.disabled = 1;
+	else
+		winform.button_pgdown.disabled = 0;
+}
+/*}}*/
+
+/*刷新列表{{*/
+refresh = function(){
+	if( maxpage != 0 ){
+		var n = table.count(..value);
+		var items = {};
+		for(i=1;config.Perpage;1){
+			var j = (page-1)*config.Perpage+i;
+			if( value[j] == null )
+				break;
+			items[i] = ..value[j][1];
+		}
+		winform.listbox.items = items;
+	}
+	else
+		winform.listbox.items = {"无可显示图片";"请检查设置"};
+	var height = winform.parent.dpiScale(20*(table.count(winform.listbox.items)+1));
+	publish("ChangeHeight",height);
+}
+/*}}*/
+
+/*列表框鼠标追踪{{*/
+var track_listbox = win.ui.tracker(winform.listbox);
+track_listbox.onMouseMove = function(wParam,lParam){
+	var x,y = win.getMessagePos();
+	var id = winform.listbox.hitTest(x,y,true);
+	winform.listbox.selIndex = id;
+	id = value[(page-1)*config.Perpage+id][[2]];
+	publish("ShowPic", id);
+}
+track_listbox.onMouseLeave = function(wParam,lParam){
+	winform.listbox.selIndex = 0;
+	publish("Hide",);
+}
+track_listbox.onRightMouseUp = function(wParam,lParam){
+	if( config.Oneclickcopy != 'ON') return;
+    var x,y = win.getMessagePos();
+	var n = winform.listbox.hitTest(x,y,true);
+	if( !n ) return;
+	n = (page-1)*config.Perpage+n;
+	if( !value[n][[2]] ) return;
+	if( config.Mode == 'Clip' ){
+		if( config.Clip.monitor == 'ON' ){
+			config.Clip.monitor = 'OFF';//临时禁用监视
+			win.clip.writeBitmap( value[n][2], false );
+			config.Clip.monitor = 'ON';
+		}
+		else
+			win.clip.writeBitmap( value[n][2], false );
+	}
+	else {
+		if( io.splitpath(value[n][2]).ext == ".gif" )
+			win.clip.gif.write(value[n][2]);
+		else{
+			var bmp = gdip.bitmap( value[n][2] );
+			var hbmp = bmp.copyHandle();
+			win.clip.writeBitmap( hbmp, false );
+			::DeleteObject(hbmp);
+			bmp.dispose();
+		}
+	}
+}
+track_listbox.onMouseWheel = function(flags,delta,lParam){
+	if( config.Wheelturn != 'ON')
+		return;
+	var v = delta/math.abs(delta);
+	if( v == -1 && winform.button_pgdown.disabled == 0 ){
+		winform.button_pgdown.onMouseClick();
+		track_listbox.onMouseMove();
+	}
+	else if( v == 1 && winform.button_pgup.disabled == 0 ){
+		winform.button_pgup.onMouseClick();
+		track_listbox.onMouseMove();
+	}
+}
+/*}}*/
+
+/*订阅消息{{*/
+subscribe("ChangeTheme",function(...){
+	winform.button_pgup.disabled = 0;
+	winform.button_pgdown.disabled = 0;
+	if( config.Theme == 'Light' ){
+		winform.bgcolor = 16119285;
+		winform.static.color = 0;
+		winform.button_pgup.skin({
+			background={
+				default=0xFFF5F5F5
+			};
+			color={
+				active=0xFFFF0000;
+				default=0xFF000000;
+				disabled=0xFFF5F5F5;
+				hover=0xFFB61E2B
+			}
+		});
+		winform.button_pgdown.skin({
+			background={
+				default=0xFFF5F5F5
+			};
+			color={
+				active=0xFFFF0000;
+				default=0xFF000000;
+				disabled=0xFFF5F5F5;
+				hover=0xFFB61E2B
+			}
+		});
+		winform.listbox.bgcolor = 16119285;
+		winform.listbox.color = 0;
+	}
+	else {
+		winform.bgcolor = 3618615;
+		winform.static.color = 16777215;
+		winform.button_pgup.skin({
+			background={
+				default=0xFF373737
+			};
+			color={
+				active=0xFFFF0000;
+				default=0xFFC4C4C4;
+				disabled=0xFF373737;
+				hover=0xFFB61E2B
+			}
+		});
+		winform.button_pgdown.skin({
+			background={
+				default=0xFF373737
+			};
+			color={
+				active=0xFFFF0000;
+				default=0xFFC4C4C4;
+				disabled=0xFF373737;
+				hover=0xFFB61E2B
+			}
+		});
+		winform.listbox.bgcolor = 3618615;
+		winform.listbox.color = 16777215;
+	}
+	winform.redrawBackground();
+})
+subscribe("LoadData",function(...){
+	page = 1;
+	winform.button_pgup.disabled = 1;
+	maxpage = math.ceil( table.count( ..value )/config.Perpage );
+	if( maxpage == 0 || page == maxpage )
+		winform.button_pgdown.disabled = 1;
+	else
+		winform.button_pgdown.disabled = 0;
+	winform.static.text = "第1/" ++ maxpage ++ "页";
+	refresh();
+})
+/*}}*/
+
+winform.show();
+win.loopMessage();
+return winform;

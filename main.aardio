@@ -1,29 +1,25 @@
-import config;
-import fonts.fontAwesome;
+//导入标准库
 import fsys;
 import gdip.bitmap;
 import process;
-import win.clip.gif;
-import win.clip.viewer;
 import win.timer;
 import win.ui;
 import win.ui.atom;
 import win.ui.menu;
-import win.ui.tracker;
-win.ui.disableDpiScaling = true;//禁用DPI自动缩放，避免显示异常
+
+//导入自定义库
+import config;
+import multiMonitors;
 
 //声明全局常量和变量
-_version = "0.4.0";
-clip = {};
+_version = "0.5.0";
+clip = {};//剪贴板数据
+value = {};//图片地址数组
 /*DSG{{*/
-var winlist = win.form(text="列表";right=99;bottom=39;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
+var winlist = win.form(text="列表";right=99;bottom=19;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
 winlist.add(
-button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=-13951306;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);z=1};
-button_pgdown={cls="plus";left=80;top=20;right=100;bottom=40;dr=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF054';z=4};
-button_pgup={cls="plus";left=0;top=20;right=20;bottom=40;dl=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF053';z=3};
-listbox={cls="listbox";left=0;top=40;right=100;bottom=120;bgcolor=3618615;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);integralHeight=0;items={"1";"2";"3"};z=2};
-plus_tip={cls="plus";left=80;top=0;right=120;bottom=40;z=6};
-static={cls="static";text="第1/1页";left=20;top=20;right=80;bottom=40;align="center";aw=1;center=1;color=16777215;dt=1;font=LOGFONT(h=-14);transparent=1;z=5}
+button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=-13951306;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);notify=1;z=1};
+custom={cls="custom";left=0;top=20;right=100;bottom=40;dl=1;dr=1;hide=1;z=2}
 )
 /*}}*/
 
@@ -32,28 +28,123 @@ if(!atom){
 	win.quitMessage();	return;
 }
 
-var value = {};//图片地址数组
-var page, maxpage;//页码
-var menu = win.ui.popmenu( winlist );
-var mtimer = win.timer(winlist);
+var winpic = winlist.loadForm("\dlg\pic_plus.aardio");
+winlist.custom.loadForm("\dlg\listbox.aardio");
+winlist.custom.orphanWindow();
+
+/*窗口贴边自动吸附{{*/
+var isDock,dockSide;//吸附状态
+
+var mtimer = win.timer(winlist,100);//鼠标监视定时器
+mtimer.onTimer = function(){
+	if( !isDock ){
+		winlist.custom.show(false);
+		return;
+	}
+	var msPos = ::POINT();
+	::User32.GetCursorPos( msPos );
+	var rc = ::RECT();
+	::User32.UnionRect(rc,winlist.getRect(true),winlist.custom.getRect(true));//获取完整的窗口RECT
+	if( rc.contains(msPos.x,msPos.y) ){
+		winpic.plus.show();
+		winlist.custom.show();
+	}
+	else{
+		winlist.custom.show(false);
+		winpic.plus.show(false);
+	}
+}
+
+var wtimer = win.timer(winlist,500);//窗口吸附定时器
+wtimer.onTimer = function(){
+	if( isDock ){
+		var rc = winlist.getRect(true);
+		var index = multiMonitors.getIndex((rc.left + rc.right)/2,(rc.top + rc.bottom)/2);
+		if(index==-1)
+			return;
+		::User32.UnionRect(rc,winlist.getRect(true),winlist.custom.getRect(true));
+		var rc_screen = multiMonitors.getRect(index,true);
+		var wrc = winlist.getRect(true);
+		select(dockSide) {
+			case 'left'
+				wrc.setPos(rc_screen.left,rc.top);
+			case 'right'
+				wrc.setPos(rc_screen.right-rc.width(),rc.top);
+		}
+		winlist.setRect(wrc);
+		publish("Move",index,dockSide);
+	}
+}
+
+winlist.wndproc = function(hwnd,message,wParam,lParam){
+	//更新窗口吸附状态
+	if( message == 3/*_WM_MOVE*/ ){
+		var rc = winlist.getRect(true);
+		var index = multiMonitors.getIndex((rc.left + rc.right)/2,(rc.top + rc.bottom)/2);
+		if(index==-1){
+			winlist.center();
+			return;
+		}
+		var rc_screen = multiMonitors.getRect(index,true);
+		if( rc.left <= rc_screen.left )
+			dockSide = "left";
+		else if( rc.right >= rc_screen.right )
+			dockSide = "right";
+		else
+			dockSide = null;
+		if( dockSide )
+			isDock = true;
+		else
+			isDock = false;
+		config.X = rc.left;
+		config.Y = rc.top;
+	}
+}
+/*}}*/
 
 /*添加菜单{{*/
+var menu = win.ui.popmenu( winlist );
 menu.addTable( {
-	{ "QuickViewPic"; };
-	{ /*分隔线*/ };
 	{ "刷新列表"; function(id){
 		loaddata();
  	} };
-	{ "全局设置"; function(id){
-		mtimer.disable();
-		winlist.show(false);
-		if( winlist.loadForm("\dlg\global_setting.aardio").doModal() )
-			initialize();
-		mtimer.enable(100,);
+	{ /*分隔线*/ };
+	{ "默认模式"; function(id){
+		menu.check(id,,0);
+		menu.check(4,false);
+		menu.check(5,false);
+		menu.check(6,false);
+		config.Mode = "Default";
+		loaddata();
  	} };
+ 	{ "目录模式"; function(id){
+		menu.check(id,,0);
+		menu.check(3,false);
+		menu.check(5,false);
+		menu.check(6,false);
+		config.Mode = "CustomDir";
+		loaddata();
+ 	} };
+ 	{ "列表模式"; function(id){
+		menu.check(id,,0);
+		menu.check(3,false);
+		menu.check(4,false);
+		menu.check(6,false);
+		config.Mode = "CustomList";
+		loaddata();
+ 	} };
+ 	{ "剪贴板"; function(id){
+		menu.check(id,,0);
+		menu.check(3,false);
+		menu.check(4,false);
+		menu.check(5,false);
+		config.Mode = "Clip";
+		loaddata();
+ 	} };
+	{ /*分隔线*/ };
 	{ "高级设置"; function(id){
 		mtimer.disable();
-		winlist.show(false);
+		winlist.custom.show(false);
 		select( config.Mode ){
 			case 'Default'
 				winlist.msgbox("默认模式下无高级设置。","信息");
@@ -70,107 +161,67 @@ menu.addTable( {
 				loaddata();
 			}
 		}
-		mtimer.enable(100,);
+		mtimer.enable();
 	} };
+	{ "其它设置"; function(id){
+		mtimer.disable();
+		winlist.custom.show(false);
+		if( winlist.loadForm("\dlg\global_setting.aardio").doModal() )
+			initialize();
+		mtimer.enable();
+ 	} };
  	{ /*分隔线*/ };
 	{ "主页"; function(id){
 		process.openUrl("https://github.com/xenon2333/QuickViewPic");
  	} };
  	{ "关于"; function(id){
  		mtimer.disable();
-		winlist.show(false);
+		winlist.custom.show(false);
 		var str = "QuickViewPic v"++_version++'\r\nWritten by Xenon\r\nEmail：xenon2333@qq.com';
 		winlist.msgbox(str,"关于");
-		mtimer.enable(100,);
+		mtimer.enable();
  	} };
 	{ "退出"; function(id){  
 		winlist.close();
  	} };
 } )
-menu.enable(1,false);
+select(config.Mode){
+	case 'Default'
+		menu.check(3);
+	case 'CustomDir'
+		menu.check(4);
+	case 'CustomList'
+		menu.check(5);
+	case 'Clip'
+		menu.check(6);
+	else
+		menu.check(3);
+}
 /*}}*/
 
 /*菜单按钮{{*/
 winlist.button_menu.onMouseEnter = function(wParam,lParam){
-	winlist.button_menu.text = "Menu";
+	winlist.button_menu.text = "Drag to Move";
 }
 winlist.button_menu.onMouseLeave = function(wParam,lParam){
 	winlist.button_menu.text = "QuickViewPic";
 }
-winlist.button_menu.onMouseClick = function(wParam,lParam){
-	menu.popup();
+winlist.button_menu.onMouseDown = function(wParam,lParam){
+	winlist.hitCaption();
 }
 winlist.button_menu.onRightMouseUp = function(wParam,lParam){
     menu.popup();
 }
 /*}}*/
 
-/*翻页按钮{{*/
-winlist.button_pgup.onMouseClick = function(wParam,lParam){
-    if( page > 1 ){
-    	page--;
-    	refresh();
-    	winlist.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
-    }
-    if( page == 1 )
-		winlist.button_pgup.disabled = 1;
-	else
-		winlist.button_pgup.disabled = 0;
-	if( maxpage == 0 || page == maxpage )
-		winlist.button_pgdown.disabled = 1;
-	else
-		winlist.button_pgdown.disabled = 0;
-}
-winlist.button_pgdown.onMouseClick = function(wParam,lParam){
-    if( page < maxpage ){
-    	page++;
-    	refresh();
-    	winlist.static.text = "第" ++ page ++"/" ++ maxpage ++ "页";
-    }
-    if( page == 1 )
-		winlist.button_pgup.disabled = 1;
-	else
-		winlist.button_pgup.disabled = 0;
-    if( maxpage == 0 || page == maxpage )
-		winlist.button_pgdown.disabled = 1;
-	else
-		winlist.button_pgdown.disabled = 0;
-}
-/*}}*/
-
-/*监视鼠标是否在窗口内{{*/
-mtimer.onTimer = function(){
-	var msPos = ::POINT();
-	::User32.GetCursorPos( msPos );
-	var hwnd = ::User32.WindowFromPoint( msPos.x, msPos.y );
-	select( hwnd ){
-		case winlist.plus_tip.hwnd {
-			winlist.plus_tip.show(false);
-			win.setTopmost(winlist.hwnd);
-		}
-		case winlist.hwnd,winlist.button_menu.hwnd,winlist.button_pgup.hwnd,winlist.button_pgdown.hwnd,winlist.listbox.hwnd {}
-		else {
-			if( win.getClass(hwnd) != "#32768" || ::User32.GetWindowThreadProcessId(hwnd,0) != ..thread.getId() ){
-				winlist.show(false);
-				win.setTopmost(winlist.plus_tip.hwnd);
-			}
-		}
-	}
-}
-/*}}*/
-
 /*加载数据{{*/
 loaddata = function(){
-	page = 1;
-	winlist.button_pgup.disabled = 1;
 	value = {};
 	select( config.Mode ){
 		case 'Default'{
 			var data = fsys.list( io._exedir,,{"*.jpg";"*.jpeg";"*.png";"*.bmp";"*.gif"});
 			var n = table.count( data )/2;
-			if( n == 0 )
-				winlist.listbox.items = {"当前目录无图片";"请检查设置"};
-			else{
+			if( n != 0 ){
 				for(i=1;n;1){
 					value[i] = {};
 					value[i][1] = data[i];
@@ -185,9 +236,7 @@ loaddata = function(){
 			}
 			var data = fsys.list( config.CustomDir.current,,{"*.jpg";"*.jpeg";"*.png";"*.bmp";"*.gif"});
 			var n = table.count( data )/2;
-			if( n == 0 )
-				winlist.listbox.items = {"当前目录无图片";"请检查设置"};
-			else{
+			if( n != 0 ){
 				for(i=1;n;1){
 					value[i] = {};
 					value[i][1] = data[i];
@@ -197,9 +246,7 @@ loaddata = function(){
 		}
 		case 'CustomList'{
 			var n = table.count( config.CustomList );
-			if( n == 0 )
-				winlist.listbox.items = {"未配置图片列表";"请检查设置"};
-			else {
+			if( n != 0 ){
 				for(i=1;n;1){
 					value[i] = {};
 					value[i][1] = io.splitpath( config.CustomList[i] ).file;
@@ -209,9 +256,7 @@ loaddata = function(){
 		}
 		case 'Clip'{
 			var n = table.count( ..clip );
-			if( n == 0 )
-				winlist.listbox.items = {"请进入高级设置";"手动配置剪贴板"};
-			else {
+			if( n != 0 ){
 				for(i=1;n;1){
 					value[..clip[i][1]] = {};
 					value[..clip[i][1]][1] = ..clip[i][3];
@@ -220,39 +265,14 @@ loaddata = function(){
 			}
 		}
 	}
-	maxpage = math.ceil( table.count( value )/config.Perpage );
-	if( maxpage == 0 || page == maxpage )
-		winlist.button_pgdown.disabled = 1;
-	winlist.static.text = "第1/" ++ maxpage ++ "页";
-	refresh();
+	publish("LoadData",);
 }
 /*}}*/
 
-/*刷新列表{{*/
-refresh = function(){
-	var n = table.count(value);
-	if( n != 0 ){
-		var items = {};
-		for(i=1;config.Perpage;1){
-			var j = (page-1)*config.Perpage+i;
-			if( value[j] == null )
-				break;
-			items[i] = value[j][1];
-		}
-		winlist.listbox.items = items;
-	}
-	if( winlist.listbox.height != 19*table.count(winlist.listbox.items) ){
-		winlist.listbox.height = 19*table.count(winlist.listbox.items);
-		winlist.height = 40+winlist.listbox.height;
-	}
-}
-/*}}*/
-
-/*更改主题色{{*/
-changetheme = function(){
+/*窗口初始化{{*/
+initialize = function(){
+	winlist.width = winlist.dpiScale(config.Width);
 	if( config.Theme == 'Light' ){
-		winlist.bgcolor = 16119285;
-		winlist.static.color = 0;
 		winlist.button_menu.skin({
 			background={
 				default=0xFFF5F5F5;
@@ -262,39 +282,8 @@ changetheme = function(){
 				default=0xFFB61E2B;
 			}
 		})
-		winlist.button_pgup.skin({
-			background={
-				default=0xFFF5F5F5
-			};
-			color={
-				active=0xFFFF0000;
-				default=0xFF000000;
-				disabled=0xFFF5F5F5;
-				hover=0xFFB61E2B
-			}
-		});
-		winlist.button_pgdown.skin({
-			background={
-				default=0xFFF5F5F5
-			};
-			color={
-				active=0xFFFF0000;
-				default=0xFF000000;
-				disabled=0xFFF5F5F5;
-				hover=0xFFB61E2B
-			}
-		});
-		winlist.listbox.bgcolor = 16119285;
-		winlist.listbox.color = 0;
-		winlist.plus_tip.skin({
-			foreground={
-				default=0xFFF5F5F5;
-			}
-		})
 	}
 	else {
-		winlist.bgcolor = 3618615;
-		winlist.static.color = 16777215;
 		winlist.button_menu.skin({
 			background={
 				default=0xFFB61E2B;
@@ -304,63 +293,10 @@ changetheme = function(){
 				default=0xFFFFFFFF;
 			}
 		})
-		winlist.button_pgup.skin({
-			background={
-				default=0xFF373737
-			};
-			color={
-				active=0xFFFF0000;
-				default=0xFFC4C4C4;
-				disabled=0xFF373737;
-				hover=0xFFB61E2B
-			}
-		});
-		winlist.button_pgdown.skin({
-			background={
-				default=0xFF373737
-			};
-			color={
-				active=0xFFFF0000;
-				default=0xFFC4C4C4;
-				disabled=0xFF373737;
-				hover=0xFFB61E2B
-			}
-		});
-		winlist.listbox.bgcolor = 3618615;
-		winlist.listbox.color = 16777215;
-		winlist.plus_tip.skin({
-			foreground={
-				default=0xFFB61E2B;
-			}
-		})
 	}
 	winlist.redrawBackground();
-}
-/*}}*/
-
-/*窗口初始化{{*/
-initialize = function(){
-	winlist.width = config.Width;
-	changetheme();
-	winlist.button_pgup.disabled = 0;
-	winlist.button_pgdown.disabled = 0;
+	publish("ChangeTheme",);
 	loaddata();
-	var scrw, scrh = win.getScreen();
-	var y = scrh/2 - (40+config.Perpage*19)/2;
-	if( y < 0 )
-		y = 0;
-	select( config.Dockside ) {
-		case 'Left' {
-			winlist.setPos(0,y);
-			winlist.plus_tip.left = -20;
-			winlist.plus_tip.right = 20;
-		}
-		case 'Right' {
-			winlist.setPos(scrw-config.Width,y);
-			winlist.plus_tip.left = scrw-20;
-			winlist.plus_tip.right = scrw+20;
-		}
-	}
 }
 /*}}*/
 
@@ -377,71 +313,17 @@ winlist.onDrawClipboard = function(){
 		..clip[n][2] = hbmp;
 		..clip[n][3] = tostring( time.tick() );
 		loaddata();
-		refresh();
 		publish("ClipChange",);
 		publish("AutoSave",);
 	}
 }
 /*}}*/
 
-/*列表框鼠标追踪{{*/
-var track_listbox = win.ui.tracker(winlist.listbox);
-track_listbox.onMouseMove = function(wParam,lParam){
-	var x,y = win.getMessagePos();
-	var id = winlist.listbox.hitTest(x,y,true);
-	winlist.listbox.selIndex = id;
-	id = value[(page-1)*config.Perpage+id][[2]];
-	publish("ShowPic", id);
-}
-track_listbox.onMouseLeave = function(wParam,lParam){
-	winlist.listbox.selIndex = 0;
-	publish("Hide",);
-	win.setTopmost(winlist.hwnd);//窗口置顶
-}
-track_listbox.onRightMouseUp = function(wParam,lParam){
-	if( config.Oneclickcopy != 'ON') return;
-    var x,y = win.getMessagePos();
-	var n = winlist.listbox.hitTest(x,y,true);
-	if( !n ) return;
-	n = (page-1)*config.Perpage+n;
-	if( !value[n][[2]] ) return;
-	if( config.Mode == 'Clip' ){
-		if( config.Clip.monitor == 'ON' ){
-			config.Clip.monitor = 'OFF';//临时禁用监视
-			win.clip.writeBitmap( value[n][2], false );
-			config.Clip.monitor = 'ON';
-		}
-		else
-			win.clip.writeBitmap( value[n][2], false );
-	}
-	else {
-		if( io.splitpath(value[n][2]).ext == ".gif" )
-			win.clip.gif.write(value[n][2]);
-		else{
-			var bmp = gdip.bitmap( value[n][2] );
-			var hbmp = bmp.copyHandle();
-			win.clip.writeBitmap( hbmp, false );
-			::DeleteObject(hbmp);
-			bmp.dispose();
-		}
-	}
-}
-track_listbox.onMouseWheel = function(flags,delta,lParam){
-	if( config.Wheelturn != 'ON')
-		return;
-	var v = delta/math.abs(delta);
-	if( v == -1 && winlist.button_pgdown.disabled == 0 ){
-		winlist.button_pgdown.onMouseClick();
-		track_listbox.onMouseMove();
-	}
-	else if( v == 1 && winlist.button_pgup.disabled == 0 ){
-		winlist.button_pgup.onMouseClick();
-		track_listbox.onMouseMove();
-	}
-}
-/*}}*/
-
 /*订阅消息{{*/
+subscribe("ChangeHeight",function(...){
+	var para = {...}
+	winlist.custom.height = para[1];
+})
 subscribe("AutoSave",function(...){
 	var n = table.count(..clip);
 	if( config.Clip.autosave == 'ON' ){
@@ -456,13 +338,11 @@ subscribe("AutoSave",function(...){
 /*}}*/
 
 /*程序初始化{{*/
-mtimer.enable(100,);//启动计时器
-if( config.Plus == 'ON' )
-	winlist.loadForm("\dlg\pic_plus.aardio");
-else
-	winlist.loadForm("\dlg\pic.aardio");
-winlist.plus_tip.border = {radius=-1};//设置悬浮窗样式
-winlist.plus_tip.orphanWindow(true,);//悬浮
+mtimer.enable();
+wtimer.enable();
 initialize();//窗口初始化
+if( config.X && config.Y && multiMonitors.getIndex(config.X,config.Y)!=-1 )
+	winlist.setPos(config.X,config.Y);
+win.setTopmost(winlist.hwnd);
 /*}}*/
 win.loopMessage();

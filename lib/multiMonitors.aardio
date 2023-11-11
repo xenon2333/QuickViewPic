@@ -1,0 +1,113 @@
+//multiMonitors 多屏
+namespace multiMonitors;
+var allMonitors = {};
+
+/*MONITORINFO结构体{{*/
+class MONITORINFO{         
+    INT cbSize = 40; 
+    struct rcMonitor = ::RECT();    
+    struct rcWork = ::RECT();
+    INT flags;
+}
+/*}}*/
+
+/*刷新屏幕数据{{*/
+refresh = function(){
+	var monitorInfo = {};
+	var proc = ..raw.tostdcall(
+		function(hMonitor,hdcMonitor,rcMoninter,data){
+			var info = MONITORINFO();
+			if( ::User32.GetMonitorInfo( hMonitor,info ) ){
+				..table.push(monitorInfo,info);
+				return true;
+			}
+			return false;
+		},"bool(ptr,ptr,ptr,ptr)");//回调函数
+	::User32.EnumDisplayMonitors(,,proc,0);//遍历所有屏幕
+	
+	..table.clear(allMonitors);
+	var k = 1;
+	for(i=1;..table.count(monitorInfo);1){
+		var data = monitorInfo[i];
+		var info = {};
+		info.rM = data.rcMonitor;
+		info.rW = data.rcWork;
+		if( data.flags == 1 ){
+			info.name = "主屏";
+			allMonitors[0] = info;
+		}
+		else {
+			info.name = "副屏"++k;
+			allMonitors[k] = info;
+			k++;
+		}
+	}
+}
+refresh();
+/*}}*/
+
+getIndex = function(x,y){
+	if( ..math.isFinite(x) && ..math.isFinite(y) ){
+		for(i=1;..table.count(allMonitors);1){
+			var rc = allMonitors[i-1].rM;
+			if(rc.contains(x,y))
+				return i-1;
+		}
+	}
+	return -1;
+}
+getInfo = function(){
+	return allMonitors;
+}
+getName = function(){
+	var name = {};
+	for(k,v in allMonitors)
+		..table.push(name,v.name);
+	return name;
+}
+getNum = function(){
+	return ..table.count(allMonitors);
+}
+getPos = function(index=0,isWork){
+	var rc;
+	if(isWork)
+		rc = allMonitors[index].rW;
+	else
+		rc = allMonitors[index].rM;
+	var x,y = rc.xywh();
+	return x,y;
+}
+getRect = function(index=0,isWork){
+	if(isWork)
+		return allMonitors[index].rW;
+	else
+		return allMonitors[index].rM;
+}
+getSize = function(index=0,isWork){
+	var rc;
+	if(isWork)
+		rc = allMonitors[index].rW;
+	else
+		rc = allMonitors[index].rM;
+	var w,h = rget(3,rc.xywh());
+	return w,h;
+}
+
+/*****intellisense()
+multiMonitors = 多屏
+end intellisense*****/
+
+/*****intellisense(multiMonitors)
+.getIndex( = 获取指定坐标所在的屏幕\n返回屏幕index
+.getIndex(.(x,y) = x,y为点坐标\n参数非法则返回-1
+.getInfo() = 获取所有屏幕的数据
+.getName() = 获取所有屏幕的名称\n副屏名称中的数字为对应编号
+.getNum() = 获取屏幕总个数
+.getPos( = 获取指定屏幕的左上角坐标\n返回x,y坐标
+.getPos(.(index,isWork) = index为屏幕编号，0为主屏。不指定默认返回主屏左上角坐标\nisWork属性指定为true则返回屏幕工作区域左上角坐标
+.getRect( = 获取指定屏幕的RECT结构体
+.getRect(.(index,isWork) = index为屏幕编号，0为主屏。不指定默认返回主屏RECT结构体\nisWork属性指定为true则返回屏幕工作区域RECT结构体
+.getSize( = 获取指定屏幕的大小\n返回宽、高
+.getSize(.(index,isWork) = index为屏幕编号，0为主屏。不指定默认返回主屏大小\nisWork属性指定为true则返回屏幕工作区域大小
+.refresh() = 刷新屏幕数据
+end intellisense*****/

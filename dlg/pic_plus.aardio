@@ -1,49 +1,19 @@
-import config;
 import win.ui;
 /*DSG{{*/
 var winpic = win.form(text="Pic";right=19;bottom=19;border="none";exmode="toolwindow";max=false;min=false;mode="popup";title=false)
 winpic.add(
-plus={cls="plus";left=0;top=0;right=20;bottom=20;foreRepeat="scale";z=1}
+plus={cls="plus";left=0;top=0;right=20;bottom=20;align="right";foreRepeat="scale";x=1;y=0.5;z=1}
 )
 /*}}*/
 
-if( !winpic.parent ){
+if( !winpic.parent )
 	return; //阻止该窗口单独启动
-}
+import config;
 import gdip.bitmap;
-
+import multiMonitors;
 var history, pic;
+var index, side;
 
-/*调整图片框大小及窗口位置{{*/
-adapt = function( w, h ){
-	var scrw, scrh = win.getScreen();
-	var dx, dy;
-	if( h > scrh : w > scrw ){
-		if( h/w > scrh/(scrw-config.Width-20) ){
-			winpic.plus.height = scrh;
-			winpic.plus.width = math.floor(w*scrh/h);
-			dx, dy = winpic.plus.width, 0;
-		}
-		else {
-			winpic.plus.height = math.floor(h*(scrw-config.Width-20)/w);
-			winpic.plus.width = scrw-config.Width-20;
-			dx, dy = winpic.plus.width, scrh/2-math.floor(winpic.plus.height/2);
-		}
-	}
-	else {
-		winpic.plus.width = w;
-		winpic.plus.height = h;
-		dx, dy = winpic.plus.width, scrh/2-math.floor(h/2);
-	}
-	select( config.Dockside ) {
-		case 'Left' winpic.setPos( config.Width + 20, dy );
-		case 'Right' winpic.setPos( scrw - config.Width - 20 - dx, dy );
-		else winpic.setPos( config.Width + 20, dy );
-	}
-}
-/*}}*/
-
-/*设置图片{{*/
 setpic = function( v ){
 	if( pic )
 		pic.dispose();
@@ -52,17 +22,24 @@ setpic = function( v ){
 		win.msgboxErr('读取图片失败！\r\n请检查文件路径是否正确、格式是否为支持的格式！',"错误");
 		return;
 	}
-	winpic.plus.setForeground(0x00000000);
-	adapt( pic.width, pic.height );
-	winpic.plus.setForeground(pic,false);
+	var w,h = multiMonitors.getSize( index , true );
+	winpic.plus.width = w - winpic.parent.dpiScale(config.Width+20);
+	winpic.plus.height = h;
+	if( pic.width < w && pic.height < h )
+		winpic.plus.foreRepeat = "point";
+	else
+		winpic.plus.foreRepeat = "scale";
+	var old = winpic.plus.setForeground( pic , false );
+	winpic.plus.redraw();
+	if( old )
+		old.dispose();
 }
-/*}}*/
 
 subscribe("ShowPic",function(...){
 	var para = {...};
 	var value = para[1];
 	if( !value )
-		winpic.plus.setForeground(0x00000000);
+		return;
 	else if( value != history){
 		history = value;
 		setpic( value );
@@ -74,6 +51,23 @@ subscribe("Hide",function(...){
 	if( pic )
 		pic.dispose();
 	winpic.plus.setForeground(0x00000000);
+} )
+
+subscribe("Move",function(...){
+	var para = {...};
+	if( para[1] != index || para[2] != side ){
+		index = para[1];
+		side = para[2];
+		if( side == 'right' ){
+			winpic.plus.x = 1;
+			winpic.plus.setPos(multiMonitors.getPos(index,true));
+		}
+		else{
+			winpic.plus.x = 0;
+			var x,y = multiMonitors.getPos(index,true);
+			winpic.plus.setPos(x+winpic.parent.dpiScale(config.Width+20),y);
+		}
+	}
 } )
 
 winpic.plus.orphanWindow(true,);

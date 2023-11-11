@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project ver="10" name="QuickViewPic" libEmbed="true" icon="\app.ico" ui="win" output="QuickViewPic.exe" CompanyName="" FileDescription="快速看图工具" LegalCopyright="Copyright (C) Xenon 2022-2023" ProductName="QuickViewPic" InternalName="QuickViewPic" FileVersion="0.4.0.0517" ProductVersion="0.4.0.0517" publishDir="/dist/" dstrip="true" local="false" ignored="false">
+<project ver="10" name="QuickViewPic" libEmbed="true" icon="\app.ico" ui="win" output="QuickViewPic.exe" CompanyName="" FileDescription="快速看图工具" LegalCopyright="Copyright (C) Xenon 2022-2023" ProductName="QuickViewPic" InternalName="QuickViewPic" FileVersion="0.5.0.1105" ProductVersion="0.5.0.1105" publishDir="/dist/" dstrip="true" local="false" ignored="false">
 	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
 	<folder name="窗体文件" path="dlg" comment="目录" embed="true" local="false" ignored="false">
 		<file name="clip_setting.aardio" path="dlg\clip_setting.aardio" comment="dlg\clip_setting.aardio"/>
 		<file name="customdir_setting.aardio" path="dlg\customdir_setting.aardio" comment="dlg\customdir_setting.aardio"/>
 		<file name="customlist_setting.aardio" path="dlg\customlist_setting.aardio" comment="dlg\customlist_setting.aardio"/>
 		<file name="global_setting.aardio" path="dlg\global_setting.aardio" comment="dlg\global_setting.aardio"/>
-		<file name="pic.aardio" path="dlg\pic.aardio" comment="dlg\pic.aardio"/>
+		<file name="listbox.aardio" path="dlg\listbox.aardio" comment="dlg\listbox.aardio"/>
 		<file name="pic_plus.aardio" path="dlg\pic_plus.aardio" comment="dlg\pic_plus.aardio"/>
 	</folder>
 </project>

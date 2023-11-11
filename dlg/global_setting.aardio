@@ -1,48 +1,27 @@
 import config;
 import win.ui;
 /*DSG{{*/
-var winset = win.form(text="全局设置";right=419;bottom=299;border="dialog frame";max=false;min=false)
+var winset = win.form(text="其它设置";right=399;bottom=169;border="dialog frame";max=false;min=false)
 winset.add(
-button_clip={cls="button";text="剪贴板";left=280;top=215;right=400;bottom=245;font=LOGFONT(h=-14);z=23};
-button_dir={cls="button";text="自定义目录";left=20;top=215;right=140;bottom=245;font=LOGFONT(h=-14);z=21};
-button_list={cls="button";text="自定义图片列表";left=150;top=215;right=270;bottom=245;font=LOGFONT(h=-14);z=22};
-button_ok={cls="button";text="保存并应用";left=300;top=260;right=400;bottom=295;font=LOGFONT(h=-14);z=19};
-checkbox_copy={cls="checkbox";text="启用右键一键复制";left=260;top=130;right=400;bottom=155;font=LOGFONT(h=-14);z=16};
-checkbox_pageturn={cls="checkbox";text="启用滚轮翻页";left=260;top=155;right=400;bottom=180;font=LOGFONT(h=-14);z=17};
-checkbox_plus={cls="checkbox";text="使用高级图像控件浏览图片（重启生效）";left=20;top=265;right=310;bottom=285;font=LOGFONT(h=-14);z=18};
-combobox={cls="combobox";left=350;top=27;right=400;bottom=52;edge=1;font=LOGFONT(h=-14);items={"20";"25";"50";"100"};mode="dropdownlist";z=14};
-edit={cls="edit";left=350;top=66;right=400;bottom=91;autovscroll=false;edge=1;font=LOGFONT(h=-14);num=1;z=15};
-groupbox={cls="groupbox";text="窗口吸附方向";left=10;top=5;right=130;bottom=95;edge=1;z=1};
-groupbox2={cls="groupbox";text="工作模式";left=10;top=100;right=245;bottom=190;edge=1;z=7};
-groupbox3={cls="groupbox";text="主题颜色";left=135;top=5;right=245;bottom=95;edge=1;z=4};
-groupbox4={cls="groupbox";text="其它设置";left=250;top=5;right=410;bottom=190;edge=1;z=12};
-groupbox5={cls="groupbox";text="高级设置入口";left=10;top=195;right=410;bottom=255;edge=1;z=20};
-radiobutton_clip={cls="radiobutton";text="剪贴板";left=25;top=155;right=105;bottom=175;font=LOGFONT(h=-14);z=11};
-radiobutton_customdir={cls="radiobutton";text="自定义目录";left=110;top=125;right=240;bottom=145;font=LOGFONT(h=-14);z=9};
-radiobutton_customlist={cls="radiobutton";text="自定义图片列表";left=110;top=155;right=240;bottom=175;font=LOGFONT(h=-14);z=10};
-radiobutton_dark={cls="radiobutton";text="深色";left=150;top=60;right=230;bottom=80;font=LOGFONT(h=-14);z=6};
-radiobutton_default={cls="radiobutton";text="默认";left=25;top=125;right=105;bottom=145;font=LOGFONT(h=-14);z=8};
-radiobutton_left={cls="radiobutton";text="屏幕左侧";left=25;top=30;right=125;bottom=50;font=LOGFONT(h=-14);z=2};
-radiobutton_light={cls="radiobutton";text="浅色";left=150;top=30;right=230;bottom=50;font=LOGFONT(h=-14);z=5};
-radiobutton_right={cls="radiobutton";text="屏幕右侧";left=25;top=60;right=125;bottom=80;font=LOGFONT(h=-14);z=3};
-static={cls="static";text='每页项目数：\r\n\r\n列表宽度：\r\n\r\n鼠标快捷操作：';left=260;top=30;right=360;bottom=130;font=LOGFONT(h=-14);transparent=1;z=13}
+button_clip={cls="button";text="剪贴板";left=270;top=85;right=390;bottom=115;font=LOGFONT(h=-14);z=13};
+button_dir={cls="button";text="自定义目录";left=270;top=15;right=390;bottom=45;font=LOGFONT(h=-14);z=11};
+button_list={cls="button";text="自定义图片列表";left=270;top=50;right=390;bottom=80;font=LOGFONT(h=-14);z=12};
+button_ok={cls="button";text="保存并应用";left=270;top=120;right=390;bottom=160;font=LOGFONT(h=-14);z=14};
+checkbox_copy={cls="checkbox";text="启用右键一键复制";left=125;top=110;right=265;bottom=135;font=LOGFONT(h=-14);z=9};
+checkbox_pageturn={cls="checkbox";text="启用滚轮翻页";left=125;top=135;right=265;bottom=160;font=LOGFONT(h=-14);z=10};
+combobox={cls="combobox";left=125;top=40;right=175;bottom=65;edge=1;font=LOGFONT(h=-14);items={"20";"25";"50";"100"};mode="dropdownlist";z=5};
+edit={cls="edit";left=125;top=75;right=175;bottom=100;autovscroll=false;edge=1;font=LOGFONT(h=-14);num=1;z=7};
+radiobutton_dark={cls="radiobutton";text="深色";left=190;top=15;right=250;bottom=35;font=LOGFONT(h=-14);z=3};
+radiobutton_light={cls="radiobutton";text="浅色";left=125;top=15;right=185;bottom=35;font=LOGFONT(h=-14);z=2};
+static_mouse={cls="static";text="鼠标快捷操作：";left=10;top=110;right=130;bottom=135;align="center";font=LOGFONT(h=-14);transparent=1;z=8};
+static_perpage={cls="static";text="每页项目数：";left=10;top=43;right=130;bottom=68;align="center";font=LOGFONT(h=-14);transparent=1;z=4};
+static_theme={cls="static";text="主题颜色：";left=10;top=13;right=130;bottom=38;align="center";font=LOGFONT(h=-14);transparent=1;z=1};
+static_width={cls="static";text="列表宽度：";left=10;top=77;right=130;bottom=102;align="center";font=LOGFONT(h=-14);transparent=1;z=6}
 )
 /*}}*/
 
 /*保存设置{{*/
 winset.button_ok.oncommand = function(id,event){
-	if( winset.radiobutton_right.checked )
-		config.Dockside = 'Right';
-	else
-		config.Dockside = 'Left';
-	if( winset.radiobutton_customdir.checked )
-		config.Mode = 'CustomDir';
-	else if( winset.radiobutton_customlist.checked )
-		config.Mode = 'CustomList';
-	else if( winset.radiobutton_clip.checked )
-		config.Mode = 'Clip';
-	else
-		config.Mode = 'Default';
 	if( winset.radiobutton_light.checked )
 		config.Theme = 'Light';
 	else
@@ -66,10 +45,6 @@ winset.button_ok.oncommand = function(id,event){
 		config.Wheelturn = 'ON';
 	else
 		config.Wheelturn = 'OFF';
-	if( winset.checkbox_plus.checked )
-		config.Plus = 'ON';
-	else
-		config.Plus = 'OFF';
 	config.save();
 	winset.endModal(true);
 }
@@ -86,22 +61,6 @@ winset.button_clip.oncommand = function(id,event){
 }
 
 loadconfig = function(){
-	select( config.Dockside ){
-		case 'Left'
-			winset.radiobutton_left.checked = 1;
-		case 'Right'
-			winset.radiobutton_right.checked = 1;
-	}
-	select( config.Mode ){
-		case 'Default'
-			winset.radiobutton_default.checked = 1;
-		case 'CustomDir'
-			winset.radiobutton_customdir.checked = 1;
-		case 'CustomList'
-			winset.radiobutton_customlist.checked = 1;
-		case 'Clip'
-			winset.radiobutton_clip.checked = 1;
-	}
 	select( config.Theme ){
 		case 'Light'
 			winset.radiobutton_light.checked = 1;
@@ -114,8 +73,6 @@ loadconfig = function(){
 		winset.checkbox_copy.checked = 1;
 	if( config.Wheelturn == 'ON' )
 		winset.checkbox_pageturn.checked = 1;
-	if( config.Plus == 'ON' )
-		winset.checkbox_plus.checked = 1;
 }
 
 loadconfig();
