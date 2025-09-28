@@ -4,12 +4,12 @@ import win.clip.gif;
 import win.ui;
 import win.ui.tracker;
 /*DSG{{*/
-var winform = win.form(text="列表";right=99;bottom=99;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
+var winform = win.form(text="列表";right=99;bottom=99;bgcolor=0x373737;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
 winform.add(
 button_pgdown={cls="plus";left=80;top=0;right=100;bottom=20;dr=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF054';z=3};
 button_pgup={cls="plus";left=0;top=0;right=20;bottom=20;dl=1;dt=1;iconStyle={font=LOGFONT(h=-14;name='FontAwesome');valign="bottom"};iconText='\uF053';z=2};
-listbox={cls="listbox";left=0;top=20;right=100;bottom=100;bgcolor=3618615;color=16777215;db=1;dl=1;dr=1;dt=1;font=LOGFONT(h=-15);integralHeight=0;items={};z=1};
-static={cls="static";text="第1/1页";left=20;top=0;right=80;bottom=20;align="center";aw=1;center=1;color=16777215;dt=1;font=LOGFONT(h=-14);transparent=1;z=4}
+listbox={cls="listbox";left=0;top=20;right=100;bottom=100;bgcolor=0x373737;color=0xFFFFFF;db=1;dl=1;dr=1;dt=1;font=LOGFONT(h=-15);integralHeight=0;items={};z=1};
+static={cls="static";text="第1/1页";left=20;top=0;right=80;bottom=20;align="center";aw=1;center=1;color=0xFFFFFF;dt=1;font=LOGFONT(h=-14);transparent=1;z=4}
 )
 /*}}*/
 
@@ -53,6 +53,7 @@ winform.button_pgdown.onMouseClick = function(wParam,lParam){
 
 /*刷新列表{{*/
 refresh = function(){
+	var height = winform.parent.dpiScale(60);
 	if( maxpage != 0 ){
 		var n = table.count(..value);
 		var items = {};
@@ -63,10 +64,10 @@ refresh = function(){
 			items[i] = ..value[j][1];
 		}
 		winform.listbox.items = items;
+		height = (maxpage == 1)?winform.parent.dpiScale(20*(table.count(winform.listbox.items)+1)):winform.parent.dpiScale(20*(config.Perpage+1));
 	}
 	else
 		winform.listbox.items = {"无可显示图片";"请检查设置"};
-	var height = winform.parent.dpiScale(20*(table.count(winform.listbox.items)+1));
 	publish("ChangeHeight",height);
 }
 /*}}*/
@@ -74,15 +75,22 @@ refresh = function(){
 /*列表框鼠标追踪{{*/
 var track_listbox = win.ui.tracker(winform.listbox);
 track_listbox.onMouseMove = function(wParam,lParam){
+	if(isFixed) return;
 	var x,y = win.getMessagePos();
 	var id = winform.listbox.hitTest(x,y,true);
 	winform.listbox.selIndex = id;
-	id = value[(page-1)*config.Perpage+id][[2]];
-	publish("ShowPic", id);
+	if(id == 0)
+		publish("Hide",);
+	else
+		publish("ShowPic",value[(page-1)*config.Perpage+id][[2]]);
 }
 track_listbox.onMouseLeave = function(wParam,lParam){
 	winform.listbox.selIndex = 0;
 	publish("Hide",);
+}
+track_listbox.onMouseDoubleClick = function(wParam,lParam){
+	isFixed = !isFixed;
+	publish("Fixed",);
 }
 track_listbox.onRightMouseUp = function(wParam,lParam){
 	if( config.Oneclickcopy != 'ON') return;
@@ -113,8 +121,7 @@ track_listbox.onRightMouseUp = function(wParam,lParam){
 	}
 }
 track_listbox.onMouseWheel = function(flags,delta,lParam){
-	if( config.Wheelturn != 'ON')
-		return;
+	if( config.Wheelturn != 'ON') return;
 	var v = delta/math.abs(delta);
 	if( v == -1 && winform.button_pgdown.disabled == 0 ){
 		winform.button_pgdown.onMouseClick();

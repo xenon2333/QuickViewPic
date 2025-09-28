@@ -3,11 +3,11 @@ import fsys;
 import fsys.path;
 import fsys.table;
 
-config = fsys.table(io.appData("/QuickViewPic/config.cfg"));
+config = fsys.table(io.exist("/config.cfg")||io.appData("/QuickViewPic/config.cfg"));
 //删除无关量
 for(k,v in config){
 	select(k){
-		case '_gc','X','Y','Mode','Perpage','Theme','Width','Oneclickcopy','Wheelturn','CustomDir','CustomList','Clip'{}
+		case '_gc','X','Y','Mode','Perpage','Theme','Width','Oneclickcopy','Wheelturn','CustomDir','CustomList','Clip','Hotkey'{}
 		else
 			config[k] = null;
 	}

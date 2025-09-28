@@ -1,18 +1,21 @@
 import config;
+import key;
 import win.ui;
 /*DSG{{*/
-var winset = win.form(text="其它设置";right=399;bottom=169;border="dialog frame";max=false;min=false)
+var winset = win.form(text="其它设置";right=399;bottom=199;border="dialog frame";max=false;min=false)
 winset.add(
-button_clip={cls="button";text="剪贴板";left=270;top=85;right=390;bottom=115;font=LOGFONT(h=-14);z=13};
-button_dir={cls="button";text="自定义目录";left=270;top=15;right=390;bottom=45;font=LOGFONT(h=-14);z=11};
-button_list={cls="button";text="自定义图片列表";left=270;top=50;right=390;bottom=80;font=LOGFONT(h=-14);z=12};
-button_ok={cls="button";text="保存并应用";left=270;top=120;right=390;bottom=160;font=LOGFONT(h=-14);z=14};
+button_clip={cls="button";text="剪贴板";left=270;top=105;right=390;bottom=145;font=LOGFONT(h=-14);z=13};
+button_dir={cls="button";text="自定义目录";left=270;top=15;right=390;bottom=55;font=LOGFONT(h=-14);z=11};
+button_list={cls="button";text="自定义图片列表";left=270;top=60;right=390;bottom=100;font=LOGFONT(h=-14);z=12};
+button_ok={cls="button";text="保存并应用";left=270;top=150;right=390;bottom=190;font=LOGFONT(h=-14);z=14};
 checkbox_copy={cls="checkbox";text="启用右键一键复制";left=125;top=110;right=265;bottom=135;font=LOGFONT(h=-14);z=9};
 checkbox_pageturn={cls="checkbox";text="启用滚轮翻页";left=125;top=135;right=265;bottom=160;font=LOGFONT(h=-14);z=10};
 combobox={cls="combobox";left=125;top=40;right=175;bottom=65;edge=1;font=LOGFONT(h=-14);items={"20";"25";"50";"100"};mode="dropdownlist";z=5};
 edit={cls="edit";left=125;top=75;right=175;bottom=100;autovscroll=false;edge=1;font=LOGFONT(h=-14);num=1;z=7};
+hotkey={cls="hotkey";left=125;top=166;right=245;bottom=186;edge=1;z=16};
 radiobutton_dark={cls="radiobutton";text="深色";left=190;top=15;right=250;bottom=35;font=LOGFONT(h=-14);z=3};
 radiobutton_light={cls="radiobutton";text="浅色";left=125;top=15;right=185;bottom=35;font=LOGFONT(h=-14);z=2};
+static={cls="static";text="显示/隐藏热键：";left=10;top=165;right=130;bottom=190;align="center";font=LOGFONT(h=-14);transparent=1;z=15};
 static_mouse={cls="static";text="鼠标快捷操作：";left=10;top=110;right=130;bottom=135;align="center";font=LOGFONT(h=-14);transparent=1;z=8};
 static_perpage={cls="static";text="每页项目数：";left=10;top=43;right=130;bottom=68;align="center";font=LOGFONT(h=-14);transparent=1;z=4};
 static_theme={cls="static";text="主题颜色：";left=10;top=13;right=130;bottom=38;align="center";font=LOGFONT(h=-14);transparent=1;z=1};
@@ -45,6 +48,8 @@ winset.button_ok.oncommand = function(id,event){
 		config.Wheelturn = 'ON';
 	else
 		config.Wheelturn = 'OFF';
+	publish("Hotkey",winset.hotkey.gethotkey());
+	config.Hotkey = winset.hotkey.text;
 	config.save();
 	winset.endModal(true);
 }
@@ -73,6 +78,7 @@ loadconfig = function(){
 		winset.checkbox_copy.checked = 1;
 	if( config.Wheelturn == 'ON' )
 		winset.checkbox_pageturn.checked = 1;
+	winset.hotkey.text = config.Hotkey;
 }
 
 loadconfig();

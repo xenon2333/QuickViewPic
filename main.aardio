@@ -1,6 +1,7 @@
 //导入标准库
 import fsys;
 import gdip.bitmap;
+import key;
 import process;
 import win.timer;
 import win.ui;
@@ -12,13 +13,14 @@ import config;
 import multiMonitors;
 
 //声明全局常量和变量
-_version = "0.5.0";
+_version = "0.6.0";
 clip = {};//剪贴板数据
 value = {};//图片地址数组
+isFixed = false;//图片窗口是否固定
 /*DSG{{*/
-var winlist = win.form(text="列表";right=99;bottom=19;bgcolor=3618615;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
+var winlist = win.form(text="列表";right=99;bottom=19;bgcolor=0x373737;border="none";exmode="toolwindow";max=false;min=false;mode="popup")
 winlist.add(
-button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=-13951306;color=16777215;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);notify=1;z=1};
+button_menu={cls="plus";text="QuickViewPic";left=0;top=0;right=100;bottom=20;bgcolor=0xFF2B1EB6;color=0xFFFFFF;dl=1;dr=1;dt=1;font=LOGFONT(h=-14);notify=1;z=1};
 custom={cls="custom";left=0;top=20;right=100;bottom=40;dl=1;dr=1;hide=1;z=2}
 )
 /*}}*/
@@ -46,12 +48,14 @@ mtimer.onTimer = function(){
 	var rc = ::RECT();
 	::User32.UnionRect(rc,winlist.getRect(true),winlist.custom.getRect(true));//获取完整的窗口RECT
 	if( rc.contains(msPos.x,msPos.y) ){
-		winpic.plus.show();
+		if(!isFixed)
+			winpic.plus.show();
 		winlist.custom.show();
 	}
 	else{
 		winlist.custom.show(false);
-		winpic.plus.show(false);
+		if(!isFixed)
+			winpic.plus.show(false);
 	}
 }
 
@@ -334,15 +338,46 @@ subscribe("AutoSave",function(...){
  		bmp.save( path );
  		bmp.dispose();
 	}
-} )
+})
+var hkId, isHide;
+subscribe("Hotkey",function(...){
+	var para = {...};
+	winlist.unreghotkey(hkId);
+	hkId = winlist.reghotkey(
+		function(id,mod,vk){
+			if(isHide){
+				isHide = false;
+				winlist.show(4/*_SW_SHOWNOACTIVATE*/);
+				mtimer.enable();
+			}
+			else{
+				isHide = true;
+				winlist.show(false);
+				mtimer.disable();
+			}
+		}
+		,para[1],para[2]
+	);
+})
 /*}}*/
 
 /*程序初始化{{*/
 mtimer.enable();
 wtimer.enable();
 initialize();//窗口初始化
-if( config.X && config.Y && multiMonitors.getIndex(config.X,config.Y)!=-1 )
+if( config.X != null && config.Y != null && multiMonitors.getIndex(config.X,config.Y)!=-1 )
 	winlist.setPos(config.X,config.Y);
+//注册热键
+do{
+	var t = string.splitEx(config.Hotkey,"\s*\+\s*");
+	var m = 0;
+	if(table.removeByValue(t,"Ctrl")) m = m | 2/*_MOD_CONTROL*/;
+	if(table.removeByValue(t,"Shift")) m = m | 4/*_MOD_SHIFT*/;
+	if(table.removeByValue(t,"Alt")) m = m | 1/*_MOD_ALT*/;
+	var k = t[1] ? key.getCode(t[1]):0;
+	publish("Hotkey",m,k);
+	break;
+}while(0);
 win.setTopmost(winlist.hwnd);
 /*}}*/
 win.loopMessage();
